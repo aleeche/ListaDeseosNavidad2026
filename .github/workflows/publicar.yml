@@ -16,14 +16,14 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  publicar:
+  # Empaqueta el sitio. Va en un job separado de la publicación porque, si se sube
+  # y se publica en el mismo job, deploy-pages a veces no encuentra el artefacto
+  # recién subido ("No artifacts named github-pages"; ver actions/deploy-pages#451).
+  construir:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.despliegue.outputs.page_url }}
     steps:
       - name: Descargar el código
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Generar config.js con la configuración de Firebase
         env:
@@ -41,13 +41,20 @@ jobs:
           echo "config.js generado para el proyecto $(echo "$FIREBASE_CONFIG" | jq -r .projectId)"
 
       - name: Configurar GitHub Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Empaquetar el sitio
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
+  publicar:
+    needs: construir
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
       - name: Publicar
         id: despliegue
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
