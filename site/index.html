@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#123527">
+  <meta name="description" content="La lista de deseos navideños de la familia: cada quien arma la suya y todos pueden verlas.">
+  <title>Deseos de Navidad 2026</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎄</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Nunito:wght@400;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/estilos.css">
+  <script src="config.js"></script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <header class="hero">
+    <canvas id="nieve" aria-hidden="true"></canvas>
+    <div class="hero-contenido">
+      <div class="marca">
+        <span class="marca-icono" aria-hidden="true">🎄</span>
+        <div>
+          <h1>Deseos de Navidad</h1>
+          <p class="marca-sub">Lista familiar · 2026</p>
+        </div>
+      </div>
+      <div id="sesion"></div>
+      <p class="cuenta" id="cuenta"></p>
+    </div>
+  </header>
+
+  <div class="pagina">
+    <div id="aviso" class="aviso" role="note" hidden></div>
+    <main id="app">
+      <p class="cargando">Cargando la lista… 🎄</p>
+    </main>
+  </div>
+
+  <footer class="pie">Hecho con cariño para la familia 🎁</footer>
+
+  <dialog id="dialogo" class="dialogo"></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <noscript>
+    <p class="pagina">Esta página necesita JavaScript activado para funcionar.</p>
+  </noscript>
+</body>
+</html>

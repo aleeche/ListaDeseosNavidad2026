@@ -1,0 +1,53 @@
+name: Publicar en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Solo un despliegue a la vez; no se cancela uno que ya está en curso.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Generar config.js con la configuración de Firebase
+        env:
+          FIREBASE_CONFIG: ${{ vars.FIREBASE_CONFIG }}
+        run: |
+          if [ -z "$FIREBASE_CONFIG" ]; then
+            echo "::warning::La variable FIREBASE_CONFIG no está definida: el sitio se publica en modo demo."
+            exit 0
+          fi
+          if ! echo "$FIREBASE_CONFIG" | jq -e 'type == "object" and has("apiKey") and has("projectId")' > /dev/null; then
+            echo "::error::FIREBASE_CONFIG debe ser un JSON válido con al menos apiKey y projectId (ver README)."
+            exit 1
+          fi
+          echo "window.FIREBASE_CONFIG = $(echo "$FIREBASE_CONFIG" | jq -c .);" > site/config.js
+          echo "config.js generado para el proyecto $(echo "$FIREBASE_CONFIG" | jq -r .projectId)"
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Empaquetar el sitio
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Publicar
+        id: despliegue
+        uses: actions/deploy-pages@v4
