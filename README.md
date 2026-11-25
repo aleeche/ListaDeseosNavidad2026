@@ -5,11 +5,15 @@ Web sencilla para que cada integrante de la familia tenga su lista de deseos de 
 ## Qué hace
 
 - Cada persona elige su nombre (y un personaje 🎅🤶⛄…) y arma su lista: qué quiere, enlace de la tienda, precio aproximado, notas y qué tanto lo quiere (★ a ★★★).
+- Antes de agregar un deseo se muestra una vista previa para revisarlo: una vez agregado **no se puede editar ni borrar**, para que nadie compre algo que después cambió.
+- **Admin 👑**: quien creó la familia (el primer integrante). Es el único que puede eliminar deseos de cualquier lista y sacar a alguien de la familia.
 - Todos ven las listas de los demás y pueden **apartar** un regalo con «Yo lo regalo», para que nadie compre lo mismo.
 - El dueño de la lista **no ve** qué le apartaron: ¡sorpresa!
 - **Mis compras**: todo lo que apartaste, agrupado por persona, con casilla de «comprado».
 - Enlace de invitación para mandar por WhatsApp.
-- Cuenta regresiva a Navidad, nieve en el encabezado y modo oscuro automático.
+- Animación de entrada con un árbol de estrellas (una vez por sesión), cuenta regresiva en vivo con hojas de calendario (días, horas, minutos y segundos) hasta la medianoche de Nochebuena y nieve en el encabezado.
+- Diseño de tarjeta navideña: fondo verde con copos, marco, acebo en las esquinas, luces cálidas y títulos en letra de pincel.
+- Íconos de [Lucide](https://lucide.dev) (licencia ISC) y una ayuda «¿Cómo funciona?» con las reglas, para que las listas muestren solo los regalos.
 
 ## Cómo está hecha
 
@@ -82,7 +86,8 @@ Abre <http://localhost:8000>. Corre en modo demo.
 
 ## Seguridad y privacidad
 
-- La web es pública, pero **las listas solo se ven con el código familiar** (≈59 bits aleatorios: imposible de adivinar). Cualquiera que tenga el código o el enlace puede ver y editar, así que compártelo solo con la familia.
-- No hay contraseñas por persona: cada quien elige su nombre al entrar (sistema de confianza familiar).
+- La web es pública, pero **las listas solo se ven con el código familiar** (≈59 bits aleatorios: imposible de adivinar). Cualquiera que tenga el código o el enlace puede ver las listas y participar, así que compártelo solo con la familia.
+- No hay contraseñas por persona: cada quien elige su nombre al entrar (sistema de confianza familiar). Por lo mismo, el rol de admin solo existe en la app: quien elija el nombre del admin tiene sus permisos.
+- Las reglas de Firestore impiden editar un deseo ya creado (solo se puede apartar, liberar o marcar como comprado). Que solo el admin borre no se puede exigir en las reglas sin cuentas de usuario.
 - La «sorpresa» (quién apartó qué) se oculta en la pantalla del dueño de la lista, pero el dato existe en la base de datos.
 - La configuración de Firebase (`apiKey`, etc.) no es secreta; la protección real la dan las reglas de `firestore.rules`.

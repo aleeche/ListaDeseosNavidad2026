@@ -26,7 +26,7 @@ Deploy = push to `main` → `.github/workflows/publicar.yml` publishes the `site
 - `js/datos-local.js` — localStorage (`ldn.demo.datos`), syncs across tabs via the `storage` event.
 - `js/datos-firebase.js` — Firestore with persistent local cache; SDK version pinned in `VERSION_FIREBASE`.
 
-Both expose the same async API: `suscribir(alCambiar, alError)` (emits `{miembros, deseos}` arrays; returns unsubscribe), `agregarMiembro`, `actualizarMiembro`, `eliminarMiembro` (cascade: deletes the member's wishes and releases gifts they reserved), `agregarDeseo`, `actualizarDeseo`, `eliminarDeseo`, `reservarDeseo(id, miembroId)`, `liberarDeseo(id, miembroId)`. Reservations run in a Firestore transaction so two people can't reserve the same gift. Expected failures are thrown via `errorConCodigo()` with `code` `'ya-apartado'` or `'no-existe'`, and the UI handles them. Timestamps are `Date.now()` ms (not `serverTimestamp`) to keep the two stores identical.
+Both expose the same async API: `suscribir(alCambiar, alError)` (emits `{miembros, deseos}` arrays; returns unsubscribe), `agregarMiembro`, `actualizarMiembro`, `eliminarMiembro` (cascade: deletes the member's wishes and releases gifts they reserved), `agregarDeseo`, `marcarComprado(id, comprado)`, `eliminarDeseo`, `reservarDeseo(id, miembroId)`, `liberarDeseo(id, miembroId)`. There is deliberately no way to update a wish's content (see "Immutable wishes" below). Reservations run in a Firestore transaction so two people can't reserve the same gift. Expected failures are thrown via `errorConCodigo()` with `code` `'ya-apartado'` or `'no-existe'`, and the UI handles them. Timestamps are `Date.now()` ms (not `serverTimestamp`) to keep the two stores identical.
 
 **Data model** (Firestore paths; the demo store mirrors the same shapes):
 - `familias/{codigoFamilia}/miembros/{id}` → `{nombre, emoji, creado}`
@@ -36,13 +36,24 @@ Both expose the same async API: `suscribir(alCambiar, alError)` (emits `{miembro
 - The code format regex exists in both `js/util.js` (`codigoFamiliaValido`) and `firestore.rules` (`codigoValido()`); change both together.
 - `firestore.rules` caps documents at 12 fields. Adding fields to a member or wish must stay within that cap.
 - CI does **not** deploy `firestore.rules`. The user pastes it into the Firebase console, so tell them whenever it changes.
-- The owner-surprise rule is UI-only: `tarjetaDeseo()` must never render reservation state when the list belongs to the current person (`esMia`). The data itself is readable by anyone with the family code.
+- The owner-surprise rule is UI-only: `tarjetaDeseo()` must never render reservation state when the list belongs to the current person (`esMia`). The data itself is readable by anyone with the family code. The same applies to the admin's delete-confirmation text on their own list.
+
+**Admin and immutable wishes.**
+- Admin = the family's oldest member (`adminFamilia()` in `app.js`, i.e. whoever created the family and joined first). No stored flag, so existing families need no migration. It is UI-only by the user's choice (no PIN, no Firebase Auth): anyone who picks the admin's name acts as admin.
+- Only the admin sees «Eliminar» on wishes (any list) and «Eliminar a X de la familia» (other members, never themselves, since deleting the oldest member would hand admin to someone else). Non-admins cannot delete their own profile because the cascade would delete their wishes.
+- Wishes are immutable once created so a giver never buys something that changed afterwards. Editing can't be allowed only while unreserved, because hiding the edit button would reveal to the owner that a gift was reserved. `firestore.rules` enforces this (`cambioPermitido()`: a wish update may only touch `reservadoPor` and `comprado`). If you add a mutable wish field, add it to that `hasOnly` list too.
+- Adding a wish is two steps: `formDeseo()` validates and `confirmarDeseo()` shows a preview with the "can't be changed" warning. «← Corregir» reopens the form from `borradorDeseo`.
 
 **UI rendering (`js/app.js`).**
 - Each Firestore/local snapshot re-renders the whole screen into `#app` with template strings. Every user-provided value must go through `esc()`.
 - Links go through `normalizarEnlace()` (http/https only) both when saved and when rendered.
 - Interaction is a single document-level click listener that dispatches on `data-accion` / `data-id` to the `acciones` map. To add a button, give it a `data-accion` and add a handler there.
-- All forms and menus share one `<dialog id="dialogo">` via `abrirDialogo(html, alEnviar)`. If `alEnviar` returns a string, it is shown as a validation error and the dialog stays open.
+- All forms and menus share one `<dialog id="dialogo">` via `abrirDialogo(html, alEnviar)`. If `alEnviar` returns a string, it is shown as a validation error and the dialog stays open. If `alEnviar` calls `abrirDialogo` again (a next step), the old form is detached and the dialog also stays open (`form.isConnected` check). When swapping content in an already-open dialog, `[autofocus]` is focused manually.
+- **No page scroll outside phones.** At ≥680px wide and ≥600px tall, `body` is exactly the viewport height. A long list scrolls inside its card (`.panel-cuerpo`, gold thin scrollbar, faded edges), so panels must keep their scrollable content inside `.panel-cuerpo`. Phones (portrait and landscape) keep normal page scroll.
+  - Because every snapshot re-renders `#app`, `pantallaPrincipal()` restores `.panel-cuerpo` `scrollTop` when the view (`data-vista`) is unchanged.
+  - Header sizes also scale with viewport height (`vh` inside the `clamp()`s). On wide and short screens (≥1240px wide, ≤820px tall) the countdown sits beside the title in the same row.
+- Dialog scrolling: the `<dialog>` itself never scrolls (`.dialogo[open]` is a flex column with `overflow: hidden`). Its single child scrolls instead, with a thin gold scrollbar inside the frame, so dialog HTML must keep exactly one root element.
+- `.dialogo-acciones` sticks to the bottom (`bottom: -24px` offsets the child's padding). `marcarDesborde()` toggles `.desborda` when the content overflows; that class adds the bar's background, top line and shadow. It runs on open, on content swap, on resize and when a validation error shows. Errors scroll into view, and `scroll-margin-bottom` keeps them clear of the bar.
 - `confirmar()` swaps content inside an already-open dialog and ignores stale `close` events (it checks `dialogo.open`). Keep that guard when touching dialog flows.
 - Firestore retries silently when it can't connect, so `conectar()` shows an error screen if no snapshot arrives within 12 s.
 
@@ -50,7 +61,23 @@ Both expose the same async API: `suscribir(alCambiar, alError)` (emits `{miembro
 - `ldn.familia`: the family code. An invite link `?familia=<code>` is consumed and stripped from the URL in `iniciar()`.
 - `ldn.yo.<familia>`: which member this device is.
 
-**Styling.** `css/estilos.css` is mobile-first with one main breakpoint at 680px. Colors are CSS variables in `:root` and are redefined under `prefers-color-scheme: dark`; use the tokens instead of hard-coded colors. The snow canvas (`js/nieve.js`) lives inside the header, pauses when the tab is hidden, and respects `prefers-reduced-motion`.
+**Styling.** `css/estilos.css` is mobile-first with one main breakpoint at 680px. Colors are CSS variables in `:root`; use the tokens instead of hard-coded colors. There is a single dark theme (`color-scheme: dark`) in both system modes, so don't add a `prefers-color-scheme` block. The snow canvas (`js/nieve.js`) lives inside the header, pauses when the tab is hidden, and respects `prefers-reduced-motion`. The live countdown (`js/cuenta.js`, using `tiempoParaNavidad()` from `util.js`) counts to local midnight Dec 24→25. It shows hours only on Dec 24 and «¡Feliz Navidad!» from Dec 25 to 31. It updates the numbers in place each second; `#cuenta` has `role="timer"`, so don't add `aria-live` to it. Each unit is a calendar sheet (`.hoja`): a red band with the unit, a Fraunces number on paper and a fold line.
+
+**Visual language.**
+- **Icons.** Lucide icons (ISC; license notice in `index.html`) live as `<symbol id="i-…">` in a hidden sprite at the top of `index.html`. Render them with `icono(nombre, clase)` from `util.js`. To add one, paste its SVG children from lucide-static into a new `<symbol>`. Icons are single-stroke and inherit `currentColor`; gold (`--oro`) marks states, priority stars (`icono-lleno` = filled), the admin crown and the hourglass.
+- **No emoji in the UI chrome.** The exceptions are member avatars (the character each person picks), the WhatsApp invite text and the favicon.
+- **Christmas-card look.** The whole page is styled like a Christmas card the user picked: card green with faint Lucide snowflakes (`--copos`) inside a sand-gray frame (`body::after`, inset `--marco-margen`, on the darker `--exterior`).
+  - **Decorations:** hand-drawn holly (`#acebo` symbol in the sprite) sits on the top-left and bottom-right frame corners (`.acebo`). A string of warm lights (`.luces`, an SVG `<pattern>`) hangs from the top of the frame. All of them are absolutely positioned in `body`, which is `position: relative`.
+  - **Clearance:** `.hero` top padding and `.pie` padding keep content clear of the holly, scaled by `--acebo`. On narrow screens the session pill moves to its own row next to the holly.
+  - **Type:** headings (h1/h2) use Kaushan Script, which only has weight 400, so never set it to bold. Eyebrows ("★ LISTA FAMILIAR · 2026", the countdown title) use letter-spaced Fraunces caps. Body text is Nunito.
+  - **Accents:** `--pino`/`--oro` are the star gold («Yo lo regalo», active and focus states) and `--accion` is the berry red (primary buttons). Dialogs look like a small framed card.
+  - **Texture:** a subtle SVG noise (`--grano`) is applied via `body::before`.
+- **Rules and notices go in the help dialog, not in the cards.** `ayuda()` (`data-accion="ayuda"`) holds them; it opens from the «?» in each panel header, the menu and the «Modo demo» pill in the header. Keep list cards focused on the gifts.
+
+**Intro animation.** A star tree (inline SVG in `index.html`, inspired by a CodePen by Uwe Chardon; each path's `--no` is its pop-in order) plays for about 3.2 s once per browser session. The original's lean and bottom-right tail were removed: stars were remapped into a symmetric triangle whose apex is at x=50 (viewBox `3 -1 94 134`), with a level base. Keep it centered on x=50 if you edit it. The SVG is sized by height (`.intro svg`).
+- An inline `<script>` in `<head>` decides before first paint: it checks `sessionStorage` `ldn.intro` and `prefers-reduced-motion`, then adds `html.intro-activa`.
+- The CSS (`.intro*` and `@keyframes intro-*` in `estilos.css`) drives the whole timeline. It ends with the overlay invisible and click-through, so it can't get stuck if JS fails.
+- `js/intro.js` only adds `.intro-saltar` on click or keypress and removes the overlay on its own `animationend`. Star `animationend` events bubble, so it filters by `e.target`.
 
 ## Firebase setup
 

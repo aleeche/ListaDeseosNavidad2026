@@ -1,75 +1,72 @@
 /* ==========================================================================
    Deseos de Navidad — estilos
-   Paleta: verde pino, rojo frutilla y dorado sobre fondo crema.
+   Estilo «tarjeta navideña»: verde de tarjeta con copos tenues dentro de un marco
+   gris arena, acebo en dos esquinas, luces cálidas, títulos en letra de pincel
+   y antetítulos en versalitas serif. Un solo tema (también en modo claro del sistema).
+   Íconos: Lucide en un solo trazo (util.js → icono()); dorado para estados y prioridad.
    ========================================================================== */
 
 :root {
-  --fondo: #faf5ec;
-  --superficie: #ffffff;
-  --superficie-2: #f3ecdf;
-  --tinta: #1d2a24;
-  --tenue: #5f6b64;
-  --linea: #e6dccb;
+  color-scheme: dark;
 
-  --pino: #1f5e45;
-  --pino-tinta: #ffffff;
-  --pino-suave: #e1efe7;
-  --frutilla: #b3262e;
-  --accion: #b3262e;
-  --accion-tinta: #ffffff;
-  --oro: #c99a2e;
-  --oro-suave: #fbf0d5;
-  --oro-borde: #ecd7a1;
+  --exterior: #0d2615;   /* verde oscuro fuera del marco */
+  --fondo: #21512d;      /* verde de la tarjeta */
+  --superficie: #1a4325; /* paneles y diálogos */
+  --superficie-2: #255a33; /* deseos y elementos dentro de un panel */
+  --campo: #143720;      /* fondo de los campos de texto */
+  --tinta: #f3ecdc;      /* crema, como el «Christmas» de la tarjeta */
+  --tenue: #bccab8;
+  --linea: #4d7454;
+  --marco: #a39b88;      /* marco gris arena */
+  --brillo: rgba(255, 255, 255, 0.06); /* filo de luz arriba de las tarjetas */
+  --marco-margen: clamp(10px, 1.6vw, 18px);
+  --canal: calc(var(--marco-margen) + 14px); /* margen lateral del contenido */
+  --acebo: clamp(96px, min(16vw, 19vh), 190px);
 
-  --hero-1: #0f2e22;
-  --hero-2: #1f5e45;
-  --hero-tinta: #fbf5e9;
+  /* El acento es el dorado de la estrella; --pino se conserva como nombre del acento. */
+  --pino: #f2b632;
+  --pino-tinta: #1b3d22;
+  --pino-suave: rgba(242, 182, 50, 0.14);
+  --frutilla: #ff9284;   /* rojo legible sobre verde (textos de peligro) */
+  --accion: #c8352a;     /* rojo de las bayas (botón principal) */
+  --accion-tinta: #fff6ea;
+  --oro: #f2b632;
+  --oro-suave: rgba(242, 182, 50, 0.13);
+  --oro-borde: rgba(242, 182, 50, 0.45);
 
-  --tono-0: #fbe3e1;
-  --tono-1: #dff0e6;
-  --tono-2: #fcf0d2;
-  --tono-3: #e3e8f8;
-  --tono-4: #f0e3f4;
-  --tono-5: #ddf0f0;
+  --hero-1: #163d22;
+  --hero-2: #2a6236;
+  --hero-tinta: #f3ecdc;
 
-  --sombra: 0 1px 2px rgba(29, 42, 36, 0.06), 0 10px 28px rgba(29, 42, 36, 0.08);
-  --radio: 22px;
-  --fuente-titulo: "Fraunces", Georgia, "Times New Roman", serif;
+  /* Grano de papel: ruido SVG muy tenue sobre toda la página */
+  --grano: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  --grano-fuerza: 0.07;
+  /* Copos de nieve (ícono snowflake de Lucide) casi invisibles, como el fondo de la tarjeta */
+  --copos: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='360'%3E%3Cdefs%3E%3Cg id='c' fill='none' stroke='%23fff' stroke-width='.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m10 20-1.25-2.5L6 18'/%3E%3Cpath d='M10 4 8.75 6.5 6 6'/%3E%3Cpath d='m14 20 1.25-2.5L18 18'/%3E%3Cpath d='m14 4 1.25 2.5L18 6'/%3E%3Cpath d='m17 21-3-6h-4'/%3E%3Cpath d='m17 3-3 6 1.5 3'/%3E%3Cpath d='M2 12h6.5L10 9'/%3E%3Cpath d='m20 10-1.5 2 1.5 2'/%3E%3Cpath d='M22 12h-6.5L14 15'/%3E%3Cpath d='m4 10 1.5 2L4 14'/%3E%3Cpath d='m7 21 3-6-1.5-3'/%3E%3Cpath d='m7 3 3 6h4'/%3E%3C/g%3E%3C/defs%3E%3Cg opacity='.05'%3E%3Cuse href='%23c' transform='translate(18 30) rotate(10 12 12) scale(4.2)' /%3E%3Cuse href='%23c' transform='translate(220 18) rotate(-15 12 12) scale(2.6)' /%3E%3Cuse href='%23c' transform='translate(130 150) rotate(25 12 12) scale(5.4)' /%3E%3Cuse href='%23c' transform='translate(268 228) rotate(5 12 12) scale(3.4)' /%3E%3Cuse href='%23c' transform='translate(40 260) rotate(-30 12 12) scale(2.4)' /%3E%3Cuse href='%23c' transform='translate(250 120) rotate(40 12 12) scale(1.8)' /%3E%3C/g%3E%3C/svg%3E");
+
+  /* Hojas de calendario de la cuenta regresiva y árbol de la intro */
+  --hoja-papel: #f3ecdc;
+  --hoja-tinta: #1d4a29;
+  --hoja-banda: #c8352a;
+  --hoja-banda-tinta: #fff6ea;
+  --hoja-canto: #cfc4a8;
+  --dorado-claro: #ffd36e;
+  --intro-verde: #5fc48a;
+  --intro-rojo: #ff6b6b;
+  --intro-oro: #ffd36e;
+
+  --tono-0: #5a2b2c;
+  --tono-1: #2c5a3a;
+  --tono-2: #5a4a22;
+  --tono-3: #2e3a5c;
+  --tono-4: #4a2f52;
+  --tono-5: #22504c;
+
+  --sombra: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 30px rgba(0, 0, 0, 0.28);
+  --radio: 14px;
+  --fuente-titulo: "Kaushan Script", "Brush Script MT", cursive;
+  --fuente-serif: "Fraunces", Georgia, "Times New Roman", serif;
   --fuente-texto: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --fondo: #0d1713;
-    --superficie: #15221c;
-    --superficie-2: #1c2c25;
-    --tinta: #ece5d8;
-    --tenue: #a3aea7;
-    --linea: #283a31;
-
-    --pino: #6cc39a;
-    --pino-tinta: #0d1713;
-    --pino-suave: #1d3a2d;
-    --frutilla: #f08a8f;
-    --accion: #cf434b;
-    --accion-tinta: #ffffff;
-    --oro: #e6bd57;
-    --oro-suave: #2f2918;
-    --oro-borde: #574a26;
-
-    --hero-1: #08130e;
-    --hero-2: #143a2b;
-    --hero-tinta: #f3ecdf;
-
-    --tono-0: #4a2326;
-    --tono-1: #1e3d2e;
-    --tono-2: #46391b;
-    --tono-3: #263150;
-    --tono-4: #3e2746;
-    --tono-5: #1d3f40;
-
-    --sombra: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 28px rgba(0, 0, 0, 0.3);
-  }
 }
 
 /* ---------- Base ---------- */
@@ -86,17 +83,75 @@ html {
 }
 
 body {
+  position: relative; /* el marco y el acebo se colocan sobre toda la altura del documento */
   margin: 0;
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: var(--fondo);
+  background: var(--exterior);
   color: var(--tinta);
   font-family: var(--fuente-texto);
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+}
+
+/* La tarjeta: verde con copos dentro de un marco gris arena (detrás de todo el contenido) */
+body::after {
+  content: "";
+  position: absolute;
+  inset: var(--marco-margen);
+  z-index: -2;
+  border: 3px solid var(--marco);
+  background:
+    var(--copos) 0 0 / 360px 360px,
+    radial-gradient(120% 70% at 30% 0%, rgba(255, 255, 255, 0.05), transparent 60%),
+    var(--fondo);
+  pointer-events: none;
+}
+
+/* Grano de papel sobre toda la página (encima de la tarjeta, debajo del contenido) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: var(--grano);
+  opacity: var(--grano-fuerza);
+  pointer-events: none;
+}
+
+/* Acebo en la esquina superior izquierda y la inferior derecha del marco */
+.acebo {
+  position: absolute;
+  z-index: 3;
+  width: var(--acebo);
+  height: var(--acebo);
+  pointer-events: none;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35));
+}
+
+.acebo-arriba {
+  top: 0;
+  left: 0;
+}
+
+.acebo-abajo {
+  right: 0;
+  bottom: 0;
+  transform: rotate(180deg);
+}
+
+/* Guirnalda de luces colgada del borde superior del marco */
+.luces {
+  position: absolute;
+  top: calc(var(--marco-margen) - 5px);
+  left: var(--marco-margen);
+  z-index: 2;
+  width: calc(100% - 2 * var(--marco-margen));
+  height: 52px;
+  pointer-events: none;
 }
 
 button,
@@ -117,12 +172,13 @@ p {
   margin: 0;
 }
 
+/* Títulos en letra de pincel, como el «Christmas» de la tarjeta (la fuente solo tiene peso 400) */
 h1,
 h2 {
   font-family: var(--fuente-titulo);
-  font-weight: 700;
-  line-height: 1.12;
-  letter-spacing: -0.01em;
+  font-weight: 400;
+  line-height: 1.2;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
 }
 
 code {
@@ -143,39 +199,82 @@ code {
   display: none !important;
 }
 
-/* ---------- Encabezado con nieve ---------- */
+/* ---------- Íconos (Lucide, sprite en index.html) ---------- */
+
+.sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.icono {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+  vertical-align: -0.2em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icono-lleno {
+  fill: currentColor;
+}
+
+/* Insignia redonda con un ícono grande (bienvenidas, listas vacías, errores) */
+.insignia {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border: 1px solid var(--oro-borde);
+  border-radius: 20px;
+  background: var(--oro-suave);
+  color: var(--oro);
+  box-shadow: inset 0 1px 0 var(--brillo);
+}
+
+.insignia .icono {
+  width: 28px;
+  height: 28px;
+  stroke-width: 1.75;
+}
+
+.insignia-admin {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--oro);
+  font-weight: 800;
+}
+
+/* ---------- Encabezado ---------- */
 
 .hero {
   position: relative;
   overflow: hidden;
-  padding: 40px 16px 76px;
+  /* deja libre la esquina del acebo y la guirnalda */
+  padding: calc(var(--acebo) * 0.62) var(--canal) 28px;
   color: var(--hero-tinta);
-  background: radial-gradient(130% 160% at 15% 0%, var(--hero-2) 0%, var(--hero-1) 65%);
 }
 
-/* Guirnalda de luces en el borde superior */
-.hero::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 16px;
-  background:
-    radial-gradient(circle at 50% 60%, #ff6b6b 0 3.5px, transparent 4.5px) 0 0 / 72px 16px,
-    radial-gradient(circle at 50% 60%, #ffd36e 0 3.5px, transparent 4.5px) 24px 0 / 72px 16px,
-    radial-gradient(circle at 50% 60%, #7fe0b0 0 3.5px, transparent 4.5px) 48px 0 / 72px 16px;
-  filter: drop-shadow(0 0 4px rgba(255, 220, 150, 0.75));
-}
-
+/* La nieve se desvanece hacia abajo: el encabezado ya no tiene un fondo propio */
 #nieve {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
+  -webkit-mask-image: linear-gradient(#000 45%, transparent);
+  mask-image: linear-gradient(#000 45%, transparent);
 }
 
 .hero-contenido {
   position: relative;
+  z-index: 1;
   max-width: 920px;
   margin: 0 auto;
   display: grid;
@@ -185,41 +284,145 @@ code {
 }
 
 .marca {
-  display: flex;
-  align-items: center;
-  gap: 12px;
   min-width: 0;
 }
 
-.marca-icono {
-  font-size: 44px;
-  line-height: 1;
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
-}
-
 .hero h1 {
-  font-size: clamp(26px, 6.5vw, 42px);
+  margin-top: 2px;
+  font-size: clamp(42px, min(10vw, 7.5vh), 72px);
+  line-height: 1.05;
 }
 
+/* «★ LISTA FAMILIAR · 2026» encima del título, como el «MERRY» de la tarjeta */
 .marca-sub {
-  margin-top: 4px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  font-family: var(--fuente-serif);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
-  opacity: 0.75;
 }
 
+.marca-sub > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.marca-sub .icono {
+  width: 14px;
+  height: 14px;
+  color: var(--oro);
+}
+
+/* «Modo demo»: pastilla discreta que abre la ayuda */
+.pastilla-demo {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 10px;
+  border: 1px solid var(--oro-borde);
+  border-radius: 999px;
+  background: var(--oro-suave);
+  color: var(--dorado-claro);
+  font-family: var(--fuente-texto);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pastilla-demo:hover {
+  background: rgba(242, 182, 50, 0.24);
+}
+
+/* Cuenta regresiva: una hoja de calendario por unidad (banda roja + número en papel) */
 .cuenta {
   grid-column: 1 / -1;
-  justify-self: start;
-  padding: 6px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(255, 255, 255, 0.1);
-  font-size: 14px;
+  justify-self: center;
+  display: grid;
+  justify-items: center;
+  gap: clamp(8px, 1.2vh, 12px);
+  margin-top: clamp(8px, 1.8vh, 18px);
+  text-align: center;
+}
+
+.cuenta:empty {
+  display: none;
+}
+
+.cuenta-titulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--fuente-serif);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.cuenta-titulo .icono {
+  color: var(--oro);
+}
+
+.cuenta-hojas {
+  display: flex;
+  justify-content: center;
+  gap: clamp(8px, 2.4vw, 16px);
+}
+
+.hoja {
+  width: clamp(68px, min(18.5vw, 12.5vh), 116px);
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--hoja-papel);
+  color: var(--hoja-tinta);
+  /* canto inferior: parece un bloc de hojas */
+  box-shadow:
+    0 2px 0 var(--hoja-canto),
+    0 4px 0 rgba(207, 196, 168, 0.5),
+    0 14px 28px rgba(0, 0, 0, 0.4);
+}
+
+.hoja-unidad {
+  display: block;
+  padding: 6px 4px 5px;
+  background: var(--hoja-banda);
+  color: var(--hoja-banda-tinta);
+  font-size: clamp(10px, 2.5vw, 12px);
   font-weight: 800;
-  backdrop-filter: blur(4px);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.hoja-numero {
+  display: block;
+  padding: 4px 6px 8px;
+  font-family: var(--fuente-serif);
+  font-size: clamp(36px, min(10vw, 7vh), 70px);
+  font-weight: 700;
+  font-variant-numeric: lining-nums tabular-nums;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  /* pliegue a media altura, como un reloj de hojas */
+  background: linear-gradient(transparent calc(50% - 0.5px), rgba(29, 74, 41, 0.14) calc(50% - 0.5px),
+      rgba(29, 74, 41, 0.14) calc(50% + 0.5px), transparent calc(50% + 0.5px));
+}
+
+.hoja-ancha {
+  width: auto;
+}
+
+.hoja-ancha .hoja-numero {
+  padding: 6px clamp(18px, 5vw, 36px) 10px;
+  font-family: var(--fuente-titulo);
+  font-size: clamp(32px, 8vw, 58px);
+  font-weight: 400;
+  letter-spacing: 0;
 }
 
 .sesion {
@@ -228,16 +431,16 @@ code {
   gap: 8px;
   max-width: 180px;
   padding: 4px 12px 4px 4px;
+  border: 1px solid var(--linea);
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--superficie);
   color: var(--hero-tinta);
   font-weight: 800;
-  backdrop-filter: blur(6px);
+  box-shadow: var(--sombra);
 }
 
 .sesion:hover {
-  background: rgba(255, 255, 255, 0.18);
+  border-color: var(--oro-borde);
 }
 
 .sesion-nombre {
@@ -246,42 +449,134 @@ code {
   white-space: nowrap;
 }
 
+/* ---------- Animación de entrada ---------- */
+/* Línea de tiempo (≈3.2 s): las estrellas brotan de abajo hacia arriba (orden --no),
+   el árbol se sostiene un momento, las estrellas caen y la capa se desvanece. Al terminar
+   queda invisible y deja pasar los clics aunque js/intro.js no cargue. */
+
+.intro {
+  display: none;
+}
+
+.intro-activa .intro {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: var(--copos) 0 0 / 360px 360px, radial-gradient(130% 120% at 50% 0%, var(--hero-2) 0%, var(--hero-1) 70%);
+  cursor: pointer;
+  animation: intro-salida 0.6s ease-in 2.6s forwards;
+}
+
+.intro svg {
+  height: min(78vh, 125vw);
+  width: auto;
+  overflow: visible;
+}
+
+.intro path {
+  fill: var(--intro-verde);
+  stroke: var(--intro-verde);
+  stroke-width: 0.2;
+  transform: scale(0);
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation:
+    intro-estrella 0.6s cubic-bezier(0.74, 1.72, 0.57, 1.01) calc(var(--no) * 13ms) forwards,
+    intro-caida 0.5s ease-in calc(2.4s + var(--no) * 3ms) forwards;
+}
+
+/* Algunas estrellas son esferas, con los colores de la guirnalda */
+.intro path:nth-child(7n + 3) {
+  fill: var(--intro-rojo);
+  stroke: var(--intro-rojo);
+}
+
+.intro path:nth-child(9n + 5),
+.intro .punta {
+  fill: var(--intro-oro);
+  stroke: var(--intro-oro);
+}
+
+.intro-activa .hero-contenido {
+  animation: intro-hero 0.7s ease-out 2.7s both;
+}
+
+/* Al tocar la pantalla o una tecla: salida rápida */
+.intro-saltar .intro {
+  animation: intro-salida 0.25s ease-in forwards;
+}
+
+.intro-saltar .hero-contenido {
+  animation: none;
+}
+
+@keyframes intro-estrella {
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes intro-caida {
+  from {
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    transform: translateY(40px) scale(0);
+  }
+}
+
+@keyframes intro-salida {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@keyframes intro-hero {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
 /* ---------- Página ---------- */
 
 .pagina {
   position: relative;
   flex: 1;
   width: 100%;
-  max-width: 920px;
-  margin: -46px auto 0;
-  padding: 0 16px 40px;
+  max-width: calc(920px + 2 * var(--canal));
+  margin: 0 auto;
+  padding: 0 var(--canal) 40px;
 }
 
 .pie {
-  padding: 0 16px 28px;
+  /* deja libre la esquina del acebo de abajo */
+  padding: 0 calc(var(--acebo) * 0.7) calc(var(--acebo) * 0.45);
   text-align: center;
   font-size: 13px;
   color: var(--tenue);
 }
 
-.aviso {
-  margin-bottom: 14px;
-  padding: 10px 14px;
-  border-radius: 14px;
-  border: 1px solid var(--oro-borde);
-  background: var(--oro-suave);
-  font-size: 14px;
-  box-shadow: var(--sombra);
+.pie .icono {
+  color: var(--frutilla);
 }
 
 .cargando {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   padding: 48px 16px;
-  text-align: center;
-  font-weight: 700;
-  color: var(--tenue);
-  background: var(--superficie);
+  border: 1px solid var(--linea);
   border-radius: var(--radio);
-  box-shadow: var(--sombra);
+  background: var(--superficie);
+  box-shadow: inset 0 1px 0 var(--brillo), var(--sombra);
+  color: var(--tenue);
+  font-weight: 700;
 }
 
 .tarjeta {
@@ -289,7 +584,7 @@ code {
   border: 1px solid var(--linea);
   border-radius: var(--radio);
   background: var(--superficie);
-  box-shadow: var(--sombra);
+  box-shadow: inset 0 1px 0 var(--brillo), var(--sombra);
 }
 
 .sutil {
@@ -334,6 +629,16 @@ code {
 .tono-4 { background: var(--tono-4); }
 .tono-5 { background: var(--tono-5); }
 
+/* Avatar con ícono (Mis compras, Invitar, Agregarme) en lugar del personaje */
+.avatar-icono {
+  color: var(--pino);
+}
+
+.avatar-icono .icono {
+  width: 50%;
+  height: 50%;
+}
+
 /* ---------- Botones ---------- */
 
 .boton {
@@ -360,6 +665,42 @@ code {
   cursor: progress;
 }
 
+.boton .icono {
+  width: 18px;
+  height: 18px;
+}
+
+/* Botón de solo ícono (p. ej. eliminar un deseo): lleva aria-label */
+.boton-icono {
+  width: 42px;
+  padding: 0;
+}
+
+/* «?» de la cabecera de cada panel: abre la ayuda */
+.boton-ayuda {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--linea);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--tenue);
+}
+
+.boton-ayuda:hover {
+  border-color: var(--oro-borde);
+  background: var(--oro-suave);
+  color: var(--oro);
+}
+
+.boton-ayuda .icono {
+  width: 20px;
+  height: 20px;
+}
+
 .primario {
   background: var(--accion);
   color: var(--accion-tinta);
@@ -378,9 +719,11 @@ code {
   filter: brightness(0.97);
 }
 
+/* «Yo lo regalo»: dorado como la estrella */
 .regalo {
   background: var(--pino);
   color: var(--pino-tinta);
+  box-shadow: 0 0 18px rgba(242, 182, 50, 0.25);
 }
 
 .regalo:hover {
@@ -430,13 +773,8 @@ code {
   text-align: center;
 }
 
-.bienvenida-icono {
-  font-size: 48px;
-  line-height: 1;
-}
-
 .bienvenida h2 {
-  font-size: clamp(24px, 5vw, 32px);
+  font-size: clamp(34px, 7vw, 44px);
 }
 
 .bienvenida > .sutil {
@@ -474,6 +812,11 @@ code {
 .miembro-opcion.nuevo {
   border-style: dashed;
   color: var(--tenue);
+}
+
+.miembro-opcion .insignia-admin {
+  margin-top: -4px;
+  font-size: 12px;
 }
 
 .formulario-angosto {
@@ -515,8 +858,8 @@ code {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  margin: 0 -16px 12px;
-  padding: 4px 16px 10px;
+  margin: 0 -12px 12px; /* el carrusel de chips no cruza el marco */
+  padding: 4px 12px 10px;
   scrollbar-width: thin;
 }
 
@@ -538,9 +881,14 @@ code {
   border-color: var(--pino);
 }
 
+/* Chip activo en crema, como las letras de la tarjeta */
 .chip.activo {
-  border-color: var(--pino);
-  background: var(--pino);
+  border-color: var(--tinta);
+  background: var(--tinta);
+  color: var(--pino-tinta);
+}
+
+.chip.activo .avatar-icono {
   color: var(--pino-tinta);
 }
 
@@ -579,17 +927,15 @@ code {
 }
 
 .panel-titulo h2 {
-  font-size: clamp(22px, 4.5vw, 30px);
+  font-size: clamp(30px, 6vw, 40px);
   overflow-wrap: anywhere;
 }
 
-.nota {
-  margin-top: 16px;
-  padding: 10px 14px;
-  border-radius: 12px;
-  background: var(--superficie-2);
-  color: var(--tenue);
-  font-size: 14px;
+.panel-titulo .sutil {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 6px;
 }
 
 .vacio {
@@ -601,9 +947,12 @@ code {
   color: var(--tenue);
 }
 
-.vacio-icono {
-  font-size: 44px;
-  line-height: 1;
+.panel-pie {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--linea);
 }
 
 /* ---------- Deseos ---------- */
@@ -627,8 +976,8 @@ code {
 }
 
 .deseo.mio {
-  border-color: var(--pino);
-  background: var(--pino-suave);
+  border-color: var(--oro-borde);
+  background: var(--oro-suave);
 }
 
 .deseo.apartado {
@@ -646,15 +995,23 @@ code {
 
 .estrellas {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
   color: var(--oro);
-  font-size: 14px;
-  letter-spacing: 2px;
+}
+
+.estrellas-iconos {
+  display: inline-flex;
+  gap: 1px;
+}
+
+.estrellas-iconos .icono {
+  width: 14px;
+  height: 14px;
 }
 
 .estrella-vacia {
-  opacity: 0.25;
+  opacity: 0.35;
 }
 
 .prioridad-texto {
@@ -687,7 +1044,11 @@ code {
 }
 
 .etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 3px 10px;
+  border: 1px solid var(--linea);
   border-radius: 999px;
   background: var(--superficie-2);
   color: var(--tinta);
@@ -710,7 +1071,16 @@ a.etiqueta:hover {
   gap: 8px;
 }
 
+.etiqueta .icono {
+  width: 14px;
+  height: 14px;
+  color: var(--tenue);
+}
+
 .sello {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 6px 12px;
   border-radius: 999px;
   background: var(--superficie);
@@ -720,7 +1090,14 @@ a.etiqueta:hover {
   font-weight: 800;
 }
 
-.sello-mio {
+.sello .icono {
+  width: 15px;
+  height: 15px;
+  color: var(--oro);
+}
+
+.sello-mio,
+.sello-mio .icono {
   border-color: var(--pino);
   color: var(--pino);
 }
@@ -791,7 +1168,7 @@ a.etiqueta:hover {
 
   .deseo-acciones {
     justify-content: flex-end;
-    max-width: 260px;
+    max-width: 320px;
   }
 
   .deseo.compra .check {
@@ -799,9 +1176,189 @@ a.etiqueta:hover {
   }
 }
 
+/* ---------- Pantallas normales: todo cabe en la ventana ---------- */
+/* Fuera del teléfono (ancho ≥ 680 y alto ≥ 600) la página mide el alto de la ventana y no
+   se desplaza: si la lista no cabe, se desplaza dentro de su tarjeta (.panel-cuerpo). */
+@media (min-width: 680px) and (min-height: 600px) {
+  body {
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  .pagina {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 8px;
+  }
+
+  #app {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .familia {
+    flex: none;
+  }
+
+  #app > .tarjeta {
+    flex: 0 1 auto;
+    min-height: 0;
+  }
+
+  #app > .panel {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-cabecera {
+    flex: none;
+  }
+
+  /* Margen negativo + relleno: los anillos de foco no se recortan en los bordes.
+     Arriba y abajo los deseos se desvanecen al desplazarse en vez de cortarse en seco. */
+  .panel-cuerpo {
+    min-height: 0;
+    margin: 4px -8px 0;
+    padding: 12px 8px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-mask-image: linear-gradient(transparent, #000 14px, #000 calc(100% - 14px), transparent);
+    mask-image: linear-gradient(transparent, #000 14px, #000 calc(100% - 14px), transparent);
+  }
+
+  .panel-cuerpo .deseos {
+    margin-top: 0;
+  }
+
+  .bienvenida {
+    overflow-y: auto;
+  }
+
+  .pie {
+    padding-top: 4px;
+    padding-bottom: calc(var(--marco-margen) + 12px);
+  }
+}
+
+/* Pantallas bajas (laptops): todo un poco más compacto para dejarle espacio a la lista */
+@media (min-width: 680px) and (min-height: 600px) and (max-height: 820px) {
+  .hero {
+    padding-bottom: 12px;
+  }
+
+  .tarjeta {
+    padding: 18px 24px;
+  }
+
+  .familia {
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+  }
+
+  .panel-titulo h2 {
+    font-size: 32px;
+  }
+
+  .pie {
+    font-size: 12px;
+    padding-bottom: calc(var(--marco-margen) + 6px);
+  }
+}
+
+/* Anchos intermedios: el título queda justo debajo del acebo, se baja un poco más */
+@media (min-width: 680px) and (max-width: 1239px) {
+  .hero {
+    padding-top: calc(var(--acebo) * 0.72);
+  }
+}
+
+/* En pantallas anchas el título queda lejos del acebo: no hace falta bajarlo tanto */
+@media (min-width: 1240px) {
+  .hero {
+    padding-top: 70px;
+  }
+}
+
+/* Anchas y bajas: el contador va a la derecha del título, en la misma fila */
+@media (min-width: 1240px) and (min-height: 600px) and (max-height: 820px) {
+  .hero-contenido {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .cuenta {
+    grid-column: 2;
+    grid-row: 1;
+    margin-top: 0;
+  }
+
+  #sesion {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .hero h1 {
+    font-size: clamp(40px, 6.2vh, 64px);
+  }
+
+  .hoja:not(.hoja-ancha) {
+    width: clamp(64px, 10.5vh, 96px);
+  }
+
+  .hoja-numero {
+    font-size: clamp(34px, 6vh, 56px);
+  }
+
+  .hoja-ancha .hoja-numero {
+    font-size: clamp(28px, 5vh, 44px);
+  }
+}
+
 @media (max-width: 519px) {
   .panel-cabecera .boton {
     flex-basis: 100%;
+  }
+
+  /* Botones fijos del diálogo en una sola fila, repartiéndose el ancho */
+  .dialogo .dialogo-acciones {
+    flex-wrap: nowrap;
+  }
+
+  .dialogo .dialogo-acciones .boton {
+    flex: 1 1 auto;
+    padding-inline: 12px;
+  }
+}
+
+/* En pantallas angostas la sesión va sola arriba a la derecha (junto al acebo)
+   y el título usa todo el ancho, ya por debajo del acebo */
+@media (max-width: 679px) {
+  .hero {
+    padding-top: calc(var(--acebo) * 0.58);
+  }
+
+  .hero-contenido {
+    grid-template-rows: minmax(42px, auto);
+  }
+
+  #sesion {
+    grid-row: 1;
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+
+  .marca {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+
+  .marca-sub,
+  .cuenta-titulo {
+    font-size: 12px;
+    letter-spacing: 0.16em;
   }
 }
 
@@ -811,11 +1368,20 @@ a.etiqueta:hover {
   width: min(520px, calc(100vw - 24px));
   max-height: calc(100dvh - 24px);
   padding: 0;
-  border: none;
-  border-radius: 24px;
-  background: var(--superficie);
+  /* una tarjetita: marco gris arena con una franja verde oscuro alrededor */
+  border: 2px solid var(--marco);
+  border-radius: 6px;
+  background: var(--copos) 0 0 / 360px 360px, var(--fondo);
   color: var(--tinta);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 0 8px var(--exterior), 0 24px 70px rgba(0, 0, 0, 0.5);
+}
+
+/* El diálogo no se desplaza: se desplaza su contenido, para que la barra quede dentro
+   del marco y los botones de abajo se queden fijos */
+.dialogo[open] {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .dialogo::backdrop {
@@ -824,11 +1390,59 @@ a.etiqueta:hover {
 }
 
 .dialogo > * {
+  min-height: 0;
   padding: 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain; /* no arrastra la página de atrás */
+}
+
+/* Barra de desplazamiento delgada y dorada (diálogos y listas que se desplazan por dentro) */
+.dialogo > *,
+.panel-cuerpo,
+.bienvenida {
+  scrollbar-width: thin;
+  scrollbar-color: var(--oro-borde) transparent;
+}
+
+/* Lo mismo en Safari (Chrome y Firefox usan scrollbar-color) */
+.dialogo > *::-webkit-scrollbar,
+.panel-cuerpo::-webkit-scrollbar,
+.bienvenida::-webkit-scrollbar {
+  width: 10px;
+}
+
+.dialogo > *::-webkit-scrollbar-track,
+.panel-cuerpo::-webkit-scrollbar-track,
+.bienvenida::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dialogo > *::-webkit-scrollbar-thumb,
+.panel-cuerpo::-webkit-scrollbar-thumb,
+.bienvenida::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 10px;
+  background: var(--oro-borde) padding-box;
+}
+
+/* Botones del diálogo siempre a la vista, pegados abajo */
+.dialogo .dialogo-acciones {
+  position: sticky;
+  bottom: -24px; /* cubre también el relleno inferior del contenido */
+  z-index: 1;
+  margin: -8px -24px -24px;
+  padding: 12px 24px 24px;
+}
+
+/* Solo cuando hay contenido escondido: fondo sólido, línea y sombra hacia arriba */
+.dialogo.desborda .dialogo-acciones {
+  border-top: 1px solid var(--linea);
+  background: var(--fondo);
+  box-shadow: 0 -16px 22px -16px rgba(0, 0, 0, 0.6);
 }
 
 .dialogo h2 {
-  font-size: 24px;
+  font-size: 32px;
 }
 
 .formulario {
@@ -854,8 +1468,8 @@ a.etiqueta:hover {
   width: 100%;
   padding: 11px 14px;
   border: 1px solid var(--linea);
-  border-radius: 14px;
-  background: var(--fondo);
+  border-radius: 12px;
+  background: var(--campo);
   font-size: 16px; /* evita el zoom automático en iPhone */
   font-weight: 600;
 }
@@ -933,8 +1547,8 @@ a.etiqueta:hover {
 }
 
 .prioridades b {
+  display: inline-flex;
   color: var(--oro);
-  letter-spacing: 2px;
 }
 
 .emojis input:checked + span,
@@ -950,12 +1564,76 @@ a.etiqueta:hover {
 }
 
 .error-form {
+  scroll-margin-bottom: 96px; /* al mostrarlo, que no quede tapado por los botones fijos */
   padding: 10px 14px;
   border-radius: 12px;
   background: color-mix(in srgb, var(--accion) 12%, transparent);
   color: var(--frutilla);
   font-size: 14px;
   font-weight: 700;
+}
+
+/* Títulos que reciben el foco al cambiar de paso: sin recuadro de foco */
+.dialogo [tabindex="-1"]:focus {
+  outline: none;
+}
+
+/* Paso de confirmación al agregar un deseo */
+.advertencia {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--oro-borde);
+  border-radius: 12px;
+  background: var(--oro-suave);
+  font-size: 14px;
+}
+
+.advertencia .icono {
+  margin-top: 2px;
+  color: var(--oro);
+}
+
+/* Ayuda «¿Cómo funciona?» */
+.ayuda-lista {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ayuda-lista li {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  align-items: start;
+  gap: 12px;
+}
+
+.ayuda-icono {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--oro-borde);
+  border-radius: 12px;
+  background: var(--oro-suave);
+  color: var(--oro);
+}
+
+.ayuda-lista strong {
+  display: block;
+  margin-top: 1px;
+}
+
+.ayuda-lista p {
+  color: var(--tenue);
+  font-size: 14px;
+}
+
+.vista-previa {
+  background: var(--superficie-2);
 }
 
 .dialogo-acciones {
@@ -993,6 +1671,9 @@ a.etiqueta:hover {
 }
 
 .menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   padding: 12px 14px;
   border: none;
   border-radius: 14px;
@@ -1007,11 +1688,19 @@ a.etiqueta:hover {
 
 /* ---------- Mensajes flotantes ---------- */
 
+.menu-item .icono {
+  color: var(--tenue);
+}
+
 .toast {
   position: fixed;
   left: 50%;
   bottom: 24px;
   z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
   max-width: calc(100vw - 32px);
   padding: 10px 18px;
   border-radius: 999px;
@@ -1037,5 +1726,13 @@ a.etiqueta:hover {
   *::before,
   *::after {
     transition: none !important;
+  }
+
+  .intro-activa .intro {
+    display: none;
+  }
+
+  .intro-activa .hero-contenido {
+    animation: none;
   }
 }

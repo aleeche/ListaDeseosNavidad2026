@@ -5,14 +5,16 @@
 import {
   almacen,
   codigoFamiliaValido,
-  cuentaRegresiva,
   dominio,
   esc,
   generarCodigoFamilia,
+  icono,
   normalizarCodigo,
   normalizarEnlace,
   tono,
 } from './util.js';
+import { iniciarCuenta } from './cuenta.js';
+import { iniciarIntro } from './intro.js';
 import { iniciarNieve } from './nieve.js';
 
 const EMOJIS = ['🎅', '🤶', '🧑‍🎄', '⛄', '🦌', '🧝', '🎄', '⭐', '🍪', '🐧', '🐻', '🦊', '🐱', '🐶', '🦄', '🎁'];
@@ -33,6 +35,7 @@ const estado = {
 };
 
 let store = null;
+let borradorDeseo = null; // lo escrito en «Nuevo deseo», para volver a corregirlo desde la confirmación
 
 const claveYo = () => `ldn.yo.${estado.familia}`;
 
@@ -50,17 +53,26 @@ const deseosDe = (id) =>
   estado.datos.deseos
     .filter((d) => d.miembroId === id)
     .sort((a, b) => (b.prioridad ?? 2) - (a.prioridad ?? 2) || (a.creado ?? 0) - (b.creado ?? 0));
+// Admin: quien creó la familia, es decir, el primer integrante que se agregó.
+// Es solo de la interfaz: cualquiera que elija ese nombre en «¿Quién eres?» actúa como admin.
+const adminFamilia = () => miembrosOrdenados()[0];
+const esAdmin = (miembro) => Boolean(miembro) && adminFamilia()?.id === miembro.id;
 const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
 const estrellas = (n) =>
-  `<span aria-hidden="true">${'★'.repeat(n)}<span class="estrella-vacia">${'★'.repeat(3 - n)}</span></span>`;
+  `<span class="estrellas-iconos" aria-hidden="true">${[1, 2, 3]
+    .map((i) => icono('star', i <= n ? 'icono-lleno' : 'estrella-vacia')).join('')}</span>`;
+const insigniaAdmin = () => `<span class="insignia-admin">${icono('crown')} Admin</span>`;
+const botonAyuda = () =>
+  `<button class="boton-ayuda" data-accion="ayuda" aria-label="¿Cómo funciona?" title="¿Cómo funciona?">${icono('circle-help')}</button>`;
 
 // ---------------------------------------------------------------------------
 // Arranque y conexión
 // ---------------------------------------------------------------------------
 
 async function iniciar() {
+  iniciarIntro();
   iniciarNieve($('#nieve'));
-  $('#cuenta').textContent = cuentaRegresiva();
+  iniciarCuenta($('#cuenta'));
 
   // El enlace de invitación trae ?familia=codigo: se guarda y se limpia de la URL.
   const params = new URLSearchParams(location.search);
@@ -74,8 +86,7 @@ async function iniciar() {
 
   if (estado.modo === 'local') {
     estado.familia = 'demo';
-    mostrarAviso('🧪 <strong>Modo demo:</strong> los datos se guardan solo en este navegador. '
-      + 'Cuando se conecte la base de datos, toda la familia verá las mismas listas.');
+    $('#modo-demo').hidden = false; // la explicación está en la ayuda
   } else {
     const guardada = almacen.leer(CLAVE_FAMILIA);
     estado.familia = codigoFamiliaValido(guardada) ? guardada : null;
@@ -86,7 +97,7 @@ async function iniciar() {
 }
 
 async function conectar() {
-  app.innerHTML = '<p class="cargando">Cargando la lista… 🎄</p>';
+  app.innerHTML = `<p class="cargando">${icono('tree-pine')} Cargando la lista…</p>`;
   try {
     if (estado.modo === 'firebase') {
       const { crearStoreFirebase } = await import('./datos-firebase.js');
@@ -157,17 +168,11 @@ function renderSesion(yo) {
     : '';
 }
 
-function mostrarAviso(html) {
-  const aviso = $('#aviso');
-  aviso.innerHTML = html;
-  aviso.hidden = false;
-}
-
 function pantallaFamilia() {
   renderSesion(null);
   app.innerHTML = `
     <section class="tarjeta bienvenida">
-      <p class="bienvenida-icono" aria-hidden="true">🎁</p>
+      <span class="insignia">${icono('gift')}</span>
       <h2>¡Bienvenido a la lista familiar!</h2>
       <p class="sutil">Para entrar necesitas el <strong>código familiar</strong>.
         Si alguien te mandó el enlace de invitación, ábrelo y entrarás directo.</p>
@@ -181,7 +186,7 @@ function pantallaFamilia() {
         <button class="boton primario" type="submit">Entrar</button>
       </form>
       <div class="separador"><span>o</span></div>
-      <button class="boton secundario" data-accion="crear-familia">✨ Crear una familia nueva</button>
+      <button class="boton secundario" data-accion="crear-familia">${icono('sparkles')} Crear una familia nueva</button>
     </section>`;
 
   const form = $('#form-familia');
@@ -208,18 +213,19 @@ function pantallaQuienEres() {
 
   app.innerHTML = `
     <section class="tarjeta bienvenida">
-      <p class="bienvenida-icono" aria-hidden="true">🎅</p>
+      <span class="insignia">${icono('users')}</span>
       <h2>${hay ? '¿Quién eres?' : '¡Empecemos!'}</h2>
       <p class="sutil">${hay
         ? 'Elige tu nombre para ver tu lista y la de tu familia.'
-        : 'Todavía no hay nadie en la lista familiar. Agrégate para empezar.'}</p>
+        : 'Todavía no hay nadie en la lista familiar. Agrégate para empezar: '
+          + 'quien se agregue primero será admin de la familia.'}</p>
       <div class="rejilla-miembros">
         ${miembros.map((m) => `
           <button class="miembro-opcion" data-accion="soy" data-id="${esc(m.id)}">
-            ${avatar(m, 'avatar-lg')}<span>${esc(m.nombre)}</span>
+            ${avatar(m, 'avatar-lg')}<span>${esc(m.nombre)}</span>${esAdmin(m) ? insigniaAdmin() : ''}
           </button>`).join('')}
         <button class="miembro-opcion nuevo" data-accion="nuevo-miembro">
-          <span class="avatar avatar-lg" aria-hidden="true">＋</span>
+          <span class="avatar avatar-lg avatar-icono" aria-hidden="true">${icono('user-plus')}</span>
           <span>${hay ? 'No estoy en la lista' : 'Agregarme'}</span>
         </button>
       </div>
@@ -240,37 +246,49 @@ function pantallaPrincipal(yo) {
   };
   const enCompras = estado.vista === 'compras';
 
+  // En pantallas grandes la lista se desplaza dentro de su tarjeta: cada snapshot vuelve a
+  // pintar todo, así que se conserva la posición si seguimos viendo la misma lista.
+  const cuerpoAnterior = app.querySelector('.panel-cuerpo');
+  const scrollPrevio = cuerpoAnterior?.dataset.vista === estado.vista ? cuerpoAnterior.scrollTop : 0;
+
   app.innerHTML = `
     <nav class="familia" aria-label="Listas de la familia">
       ${[yo, ...otros].map(chip).join('')}
       <button class="chip chip-compras${enCompras ? ' activo' : ''}" data-accion="ver" data-id="compras" aria-pressed="${enCompras}">
-        <span class="avatar avatar-sm" aria-hidden="true">🛍️</span><span>Mis compras</span>
+        <span class="avatar avatar-sm avatar-icono" aria-hidden="true">${icono('shopping-bag')}</span><span>Mis compras</span>
         <span class="conteo">${compras.length}</span>
       </button>
       <button class="chip chip-invitar" data-accion="invitar">
-        <span class="avatar avatar-sm" aria-hidden="true">💌</span><span>Invitar</span>
+        <span class="avatar avatar-sm avatar-icono" aria-hidden="true">${icono('mail')}</span><span>Invitar</span>
       </button>
     </nav>
     ${enCompras ? panelCompras(compras) : panelLista(buscarMiembro(estado.vista), yo)}`;
+  const cuerpo = app.querySelector('.panel-cuerpo');
+  if (cuerpo && scrollPrevio) cuerpo.scrollTop = scrollPrevio;
 }
 
 function panelLista(miembro, yo) {
   const esMia = miembro.id === yo.id;
+  const soyAdmin = esAdmin(yo);
   const deseos = deseosDe(miembro.id);
   const nombre = esc(miembro.nombre);
 
-  const nota = esMia
-    ? '🤫 Tu familia puede apartar regalos de tu lista, pero tú no verás cuáles. ¡Que sea sorpresa!'
-    : `🎁 Toca «Yo lo regalo» para apartar un regalo y que nadie más lo compre. ${nombre} no verá quién lo apartó.`;
+  // Las reglas (sorpresa, deseos fijos, admin) viven en la ayuda (botón ?), no en la tarjeta.
+  // El admin puede sacar a otros de la familia (p. ej. perfiles repetidos), pero no a sí mismo.
+  const pie = soyAdmin && !esMia
+    ? `<div class="panel-pie">
+        <button class="boton fantasma peligro" data-accion="eliminar-miembro" data-id="${esc(miembro.id)}">${icono('trash-2')} Eliminar a ${nombre} de la familia</button>
+      </div>`
+    : '';
 
   const vacio = esMia
     ? `<div class="vacio">
-        <p class="vacio-icono" aria-hidden="true">📝</p>
+        <span class="insignia">${icono('gift')}</span>
         <p><strong>Tu lista está vacía.</strong><br>¿Qué te gustaría recibir esta Navidad?</p>
-        <button class="boton primario" data-accion="nuevo-deseo">＋ Agregar mi primer deseo</button>
+        <button class="boton primario" data-accion="nuevo-deseo">${icono('plus')} Agregar mi primer deseo</button>
       </div>`
     : `<div class="vacio">
-        <p class="vacio-icono" aria-hidden="true">🦌</p>
+        <span class="insignia">${icono('tree-pine')}</span>
         <p>${nombre} todavía no ha agregado deseos.</p>
       </div>`;
 
@@ -280,14 +298,17 @@ function panelLista(miembro, yo) {
         ${avatar(miembro, 'avatar-lg')}
         <div class="panel-titulo">
           <h2 id="titulo-panel">${esMia ? 'Mi lista' : `Lista de ${nombre}`}</h2>
-          <p class="sutil">${plural(deseos.length, 'deseo', 'deseos')}</p>
+          <p class="sutil">${plural(deseos.length, 'deseo', 'deseos')}${esAdmin(miembro) ? ` · ${insigniaAdmin()}` : ''}</p>
         </div>
-        ${esMia && deseos.length ? '<button class="boton primario" data-accion="nuevo-deseo">＋ Agregar deseo</button>' : ''}
+        ${botonAyuda()}
+        ${esMia && deseos.length ? `<button class="boton primario" data-accion="nuevo-deseo">${icono('plus')} Agregar deseo</button>` : ''}
       </header>
-      <p class="nota">${nota}</p>
-      ${deseos.length
-        ? `<ul class="deseos">${deseos.map((d) => tarjetaDeseo(d, esMia, yo)).join('')}</ul>`
-        : vacio}
+      <div class="panel-cuerpo" data-vista="${esc(miembro.id)}">
+        ${deseos.length
+          ? `<ul class="deseos">${deseos.map((d) => tarjetaDeseo(d, esMia, yo, soyAdmin)).join('')}</ul>`
+          : vacio}
+        ${pie}
+      </div>
     </section>`;
 }
 
@@ -304,13 +325,13 @@ function cuerpoDeseo(d) {
       ${d.notas ? `<p class="notas">${esc(d.notas)}</p>` : ''}
       ${d.precio || enlace ? `
         <div class="meta">
-          ${d.precio ? `<span class="etiqueta">💰 ${esc(d.precio)}</span>` : ''}
-          ${enlace ? `<a class="etiqueta enlace" href="${esc(enlace)}" target="_blank" rel="noopener noreferrer">🔗 ${esc(dominio(enlace))} ↗</a>` : ''}
+          ${d.precio ? `<span class="etiqueta">${icono('tag')} ${esc(d.precio)}</span>` : ''}
+          ${enlace ? `<a class="etiqueta enlace" href="${esc(enlace)}" target="_blank" rel="noopener noreferrer">${icono('external-link')} ${esc(dominio(enlace))}</a>` : ''}
         </div>` : ''}
     </div>`;
 }
 
-function tarjetaDeseo(d, esMia, yo) {
+function tarjetaDeseo(d, esMia, yo, soyAdmin) {
   const id = esc(d.id);
   const apartadoPorMi = d.reservadoPor === yo.id;
   const apartadoPorOtro = Boolean(d.reservadoPor) && !apartadoPorMi;
@@ -318,23 +339,25 @@ function tarjetaDeseo(d, esMia, yo) {
   let acciones;
   let clase = '';
   if (esMia) {
-    // El dueño nunca ve si algo de su lista está apartado.
-    acciones = `
-      <button class="boton fantasma" data-accion="editar-deseo" data-id="${id}">Editar</button>
-      <button class="boton fantasma peligro" data-accion="borrar-deseo" data-id="${id}">Eliminar</button>`;
+    // El dueño nunca ve si algo de su lista está apartado. Sus deseos no se editan.
+    acciones = '';
   } else if (apartadoPorMi) {
     clase = ' mio';
     acciones = `
-      <span class="sello sello-mio">✓ Lo regalas tú</span>
+      <span class="sello sello-mio">${icono('check')} Lo regalas tú</span>
       <button class="boton fantasma" data-accion="liberar" data-id="${id}">Ya no</button>`;
   } else if (apartadoPorOtro) {
     clase = ' apartado';
-    acciones = `<span class="sello">🔒 Ya lo regala ${esc(nombreDe(d.reservadoPor))}</span>`;
+    acciones = `<span class="sello">${icono('lock')} Ya lo regala ${esc(nombreDe(d.reservadoPor))}</span>`;
   } else {
-    acciones = `<button class="boton regalo" data-accion="reservar" data-id="${id}">🎁 Yo lo regalo</button>`;
+    acciones = `<button class="boton regalo" data-accion="reservar" data-id="${id}">${icono('gift')} Yo lo regalo</button>`;
+  }
+  if (soyAdmin) {
+    acciones += `<button class="boton fantasma peligro boton-icono" data-accion="borrar-deseo" data-id="${id}"
+      aria-label="Eliminar «${esc(d.titulo)}»" title="Eliminar">${icono('trash-2')}</button>`;
   }
 
-  return `<li class="deseo${clase}">${cuerpoDeseo(d)}<div class="deseo-acciones">${acciones}</div></li>`;
+  return `<li class="deseo${clase}">${cuerpoDeseo(d)}${acciones ? `<div class="deseo-acciones">${acciones}</div>` : ''}</li>`;
 }
 
 function panelCompras(compras) {
@@ -369,20 +392,22 @@ function panelCompras(compras) {
   return `
     <section class="tarjeta panel" aria-labelledby="titulo-panel">
       <header class="panel-cabecera">
-        <span class="avatar avatar-lg" aria-hidden="true">🛍️</span>
+        <span class="avatar avatar-lg avatar-icono" aria-hidden="true">${icono('shopping-bag')}</span>
         <div class="panel-titulo">
           <h2 id="titulo-panel">Mis compras</h2>
           <p class="sutil">${compras.length
             ? `${plural(compras.length, 'regalo apartado', 'regalos apartados')} · ${listos} comprado${listos === 1 ? '' : 's'}`
             : 'Aún no apartas ningún regalo'}</p>
         </div>
+        ${botonAyuda()}
       </header>
-      <p class="nota">🛒 Aquí aparece todo lo que apartaste con «Yo lo regalo». Marca cada regalo cuando ya lo tengas.</p>
-      ${compras.length ? grupos : `
-        <div class="vacio">
-          <p class="vacio-icono" aria-hidden="true">🛷</p>
-          <p>Entra a la lista de alguien de tu familia y toca <strong>«Yo lo regalo»</strong>.</p>
-        </div>`}
+      <div class="panel-cuerpo" data-vista="compras">
+        ${compras.length ? grupos : `
+          <div class="vacio">
+            <span class="insignia">${icono('shopping-bag')}</span>
+            <p>Aquí aparece lo que apartes. Entra a la lista de alguien de tu familia y toca <strong>«Yo lo regalo»</strong>.</p>
+          </div>`}
+      </div>
     </section>`;
 }
 
@@ -390,7 +415,7 @@ function pantallaError(mensaje, err) {
   const sinPermiso = err?.code === 'permission-denied';
   app.innerHTML = `
     <section class="tarjeta bienvenida">
-      <p class="bienvenida-icono" aria-hidden="true">🥶</p>
+      <span class="insignia">${icono('snowflake')}</span>
       <h2>Ups, algo se congeló</h2>
       <p>${esc(mensaje)}</p>
       ${sinPermiso ? '<p class="sutil">La base de datos rechazó el acceso. Revisa que las reglas de Firestore estén publicadas.</p>' : ''}
@@ -408,6 +433,7 @@ function pantallaError(mensaje, err) {
 /**
  * Muestra contenido en el diálogo modal. Si trae un <form>, al enviarlo se llama
  * alEnviar(formData): si devuelve un texto, se muestra como error y el diálogo sigue abierto.
+ * Si alEnviar abre otro paso en el diálogo (llamando a abrirDialogo), tampoco se cierra.
  */
 function abrirDialogo(html, alEnviar) {
   dialogo.innerHTML = html;
@@ -424,10 +450,12 @@ function abrirDialogo(html, alEnviar) {
         if (error) {
           error.textContent = resultado;
           error.hidden = false;
+          marcarDesborde();
+          error.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
         }
         return;
       }
-      dialogo.close();
+      if (form.isConnected) dialogo.close();
     } catch (err) {
       console.error(err);
       if (error) {
@@ -438,7 +466,16 @@ function abrirDialogo(html, alEnviar) {
       if (boton) boton.disabled = false;
     }
   });
-  if (!dialogo.open) dialogo.showModal();
+  // showModal() enfoca [autofocus]; si el diálogo ya estaba abierto hay que hacerlo a mano.
+  if (dialogo.open) dialogo.querySelector('[autofocus]')?.focus();
+  else dialogo.showModal();
+  marcarDesborde();
+}
+
+/** Marca el diálogo cuando su contenido no cabe y hay que desplazarse (los botones fijos muestran una línea). */
+function marcarDesborde() {
+  const contenido = dialogo.firstElementChild;
+  dialogo.classList.toggle('desborda', Boolean(contenido) && contenido.scrollHeight > contenido.clientHeight + 1);
 }
 
 function confirmar({ titulo, texto, boton }) {
@@ -466,7 +503,7 @@ function formMiembro(miembro = null) {
   const elegido = miembro?.emoji ?? EMOJIS[estado.datos.miembros.length % EMOJIS.length];
   abrirDialogo(`
     <form class="formulario">
-      <h2>${miembro ? 'Editar mi perfil' : '¡Bienvenido a la familia! 🎄'}</h2>
+      <h2>${miembro ? 'Editar mi perfil' : '¡Bienvenido a la familia!'}</h2>
       <label class="campo">
         <span>Tu nombre</span>
         <input name="nombre" required maxlength="30" autocomplete="given-name" placeholder="Ej. Abuela Rosa"
@@ -481,7 +518,6 @@ function formMiembro(miembro = null) {
       </fieldset>
       <p class="error-form" role="alert" hidden></p>
       <div class="dialogo-acciones">
-        ${miembro ? `<button type="button" class="boton fantasma peligro a-la-izquierda" data-accion="eliminar-miembro" data-id="${esc(miembro.id)}">Eliminar perfil</button>` : ''}
         <button type="button" class="boton fantasma" data-accion="cerrar-dialogo">Cancelar</button>
         <button type="submit" class="boton primario">${miembro ? 'Guardar' : 'Entrar'}</button>
       </div>
@@ -498,7 +534,7 @@ function formMiembro(miembro = null) {
 
     if (miembro) {
       await store.actualizarMiembro(miembro.id, { nombre, emoji });
-      aviso('Perfil actualizado ✨');
+      aviso('Perfil actualizado');
       return undefined;
     }
     const id = await store.agregarMiembro({ nombre, emoji });
@@ -507,34 +543,35 @@ function formMiembro(miembro = null) {
       estado.recienCreada = false;
       setTimeout(invitar, 350);
     } else {
-      aviso(`¡Hola, ${nombre}! 🎄`);
+      aviso(`¡Hola, ${nombre}!`, 'sparkles');
     }
     return undefined;
   });
 }
 
-function formDeseo(deseo = null) {
-  const prioridad = deseo?.prioridad ?? 2;
+/** Formulario de un deseo nuevo (los deseos no se editan). `borrador` lo rellena al volver a corregir. */
+function formDeseo(borrador = {}) {
+  const prioridad = borrador.prioridad ?? 2;
   abrirDialogo(`
     <form class="formulario">
-      <h2>${deseo ? 'Editar deseo' : 'Nuevo deseo ✨'}</h2>
+      <h2>Nuevo deseo</h2>
       <label class="campo">
         <span>¿Qué te gustaría recibir?</span>
         <input name="titulo" required maxlength="120" autocomplete="off" placeholder="Ej. Audífonos inalámbricos"
-               value="${esc(deseo?.titulo)}" autofocus>
+               value="${esc(borrador.titulo)}" autofocus>
       </label>
       <label class="campo">
         <span>Enlace <small>opcional</small></span>
         <input name="enlace" inputmode="url" maxlength="500" autocomplete="off" autocapitalize="none" spellcheck="false"
-               placeholder="Pega aquí el link de la tienda" value="${esc(deseo?.enlace)}">
+               placeholder="Pega aquí el link de la tienda" value="${esc(borrador.enlace)}">
       </label>
       <label class="campo">
         <span>Precio aproximado <small>opcional</small></span>
-        <input name="precio" maxlength="30" autocomplete="off" placeholder="Ej. 250" value="${esc(deseo?.precio)}">
+        <input name="precio" maxlength="30" autocomplete="off" placeholder="Ej. 250" value="${esc(borrador.precio)}">
       </label>
       <label class="campo">
         <span>Notas <small>opcional</small></span>
-        <textarea name="notas" maxlength="300" rows="3" placeholder="Talla, color, modelo, tienda…">${esc(deseo?.notas)}</textarea>
+        <textarea name="notas" maxlength="300" rows="3" placeholder="Talla, color, modelo, tienda…">${esc(borrador.notas)}</textarea>
       </label>
       <fieldset class="opciones">
         <legend>¿Cuánto lo quieres?</legend>
@@ -548,28 +585,46 @@ function formDeseo(deseo = null) {
       <p class="error-form" role="alert" hidden></p>
       <div class="dialogo-acciones">
         <button type="button" class="boton fantasma" data-accion="cerrar-dialogo">Cancelar</button>
-        <button type="submit" class="boton primario">${deseo ? 'Guardar cambios' : 'Agregar a mi lista'}</button>
+        <button type="submit" class="boton primario">Revisar y agregar</button>
       </div>
-    </form>`, async (fd) => {
+    </form>`, (fd) => {
     const titulo = String(fd.get('titulo') ?? '').trim();
     if (!titulo) return 'Escribe qué te gustaría recibir.';
     const enlace = normalizarEnlace(fd.get('enlace'));
     if (enlace === null) return 'El enlace no parece válido. Cópialo completo desde la página de la tienda.';
-    const datos = {
+    borradorDeseo = {
       titulo,
       enlace,
       precio: String(fd.get('precio') ?? '').trim(),
       notas: String(fd.get('notas') ?? '').trim(),
       prioridad: Number(fd.get('prioridad')) || 2,
     };
-    if (deseo) {
-      await store.actualizarDeseo(deseo.id, datos);
-      aviso('Cambios guardados ✨');
-    } else {
-      await store.agregarDeseo({ ...datos, miembroId: estado.yo });
-      aviso('¡Deseo agregado a tu lista! ✨');
-    }
+    confirmarDeseo(borradorDeseo);
     return undefined;
+  });
+}
+
+/** Segundo paso de «Nuevo deseo»: vista previa y aviso de que ya no se podrá cambiar. */
+function confirmarDeseo(datos) {
+  const advertencia = esAdmin(yoActual())
+    ? '<strong>Una vez agregado no podrás editarlo</strong>, para que nadie compre algo que después cambió.'
+    : '<strong>Una vez agregado no podrás editarlo ni eliminarlo</strong>, para que nadie compre algo '
+      + `que después cambió. Si te equivocas, solo ${esc(adminFamilia()?.nombre)} (admin) podrá quitarlo.`;
+  abrirDialogo(`
+    <form class="formulario">
+      <h2 tabindex="-1" autofocus>¿Todo bien?</h2>
+      <p>Así se verá en tu lista. Revisa el nombre, el enlace y los detalles.</p>
+      <div class="deseo vista-previa">${cuerpoDeseo(datos)}</div>
+      <p class="advertencia">${icono('triangle-alert')}<span>${advertencia}</span></p>
+      <p class="error-form" role="alert" hidden></p>
+      <div class="dialogo-acciones">
+        <button type="button" class="boton fantasma" data-accion="corregir-deseo">${icono('arrow-left')} Corregir</button>
+        <button type="submit" class="boton primario">${icono('check')} Sí, agregarlo</button>
+      </div>
+    </form>`, async () => {
+    await store.agregarDeseo({ ...datos, miembroId: estado.yo });
+    borradorDeseo = null;
+    aviso('¡Deseo agregado a tu lista!', 'gift');
   });
 }
 
@@ -582,13 +637,14 @@ function menu() {
         ${avatar(yo, 'avatar-lg')}
         <div>
           <h2>${esc(yo.nombre)}</h2>
-          <p class="sutil">${estado.modo === 'local' ? 'Modo demo' : `Familia <code>${esc(estado.familia)}</code>`}</p>
+          <p class="sutil">${esAdmin(yo) ? `${insigniaAdmin()} · ` : ''}${estado.modo === 'local' ? 'Modo demo' : `Familia <code>${esc(estado.familia)}</code>`}</p>
         </div>
       </div>
-      <button class="menu-item" data-accion="editar-perfil">✏️ Editar mi perfil</button>
-      <button class="menu-item" data-accion="cambiar-persona">🔄 No soy ${esc(yo.nombre)}</button>
-      <button class="menu-item" data-accion="invitar">💌 Invitar a la familia</button>
-      ${estado.modo === 'firebase' ? '<button class="menu-item" data-accion="salir-familia">🚪 Salir de esta familia</button>' : ''}
+      <button class="menu-item" data-accion="editar-perfil">${icono('pencil')} Editar mi perfil</button>
+      <button class="menu-item" data-accion="cambiar-persona">${icono('repeat')} No soy ${esc(yo.nombre)}</button>
+      <button class="menu-item" data-accion="invitar">${icono('mail')} Invitar a la familia</button>
+      <button class="menu-item" data-accion="ayuda">${icono('circle-help')} ¿Cómo funciona?</button>
+      ${estado.modo === 'firebase' ? `<button class="menu-item" data-accion="salir-familia">${icono('log-out')} Salir de esta familia</button>` : ''}
       <div class="dialogo-acciones">
         <button class="boton fantasma" data-accion="cerrar-dialogo">Cerrar</button>
       </div>
@@ -599,7 +655,7 @@ function invitar() {
   if (estado.modo === 'local') {
     abrirDialogo(`
       <div class="formulario">
-        <h2>Invita a tu familia 💌</h2>
+        <h2>Invita a tu familia</h2>
         <p>Estás en <strong>modo demo</strong>: los datos solo existen en este navegador.
           Cuando la app esté conectada a la base de datos podrás compartir un enlace con toda la familia.</p>
         <div class="dialogo-acciones">
@@ -616,19 +672,50 @@ function invitar() {
 
   abrirDialogo(`
     <div class="formulario">
-      <h2>Invita a tu familia 💌</h2>
+      <h2>Invita a tu familia</h2>
       <p>Comparte este enlace. Quien lo abra entrará directo a las listas de la familia.</p>
       <div class="compartir">
         <input id="enlace-invitacion" readonly value="${esc(url.href)}" aria-label="Enlace de invitación">
-        <button type="button" class="boton secundario" data-accion="copiar">Copiar</button>
+        <button type="button" class="boton secundario" data-accion="copiar">${icono('copy')} Copiar</button>
       </div>
       <a class="boton whatsapp" href="https://wa.me/?text=${encodeURIComponent(mensaje)}" target="_blank" rel="noopener noreferrer">
-        Enviar por WhatsApp
+        ${icono('message-circle')} Enviar por WhatsApp
       </a>
       <p class="sutil pequeno">Código familiar: <code>${esc(estado.familia)}</code><br>
-        Cualquiera con este código o enlace puede ver y editar las listas: compártelo solo con la familia.</p>
+        Cualquiera con este código o enlace puede ver las listas y agregar deseos: compártelo solo con la familia.</p>
       <div class="dialogo-acciones">
         <button class="boton fantasma" data-accion="cerrar-dialogo">Listo</button>
+      </div>
+    </div>`);
+}
+
+/** Las reglas de la app en un solo lugar (antes eran avisos fijos dentro de cada lista). */
+function ayuda() {
+  const yo = yoActual();
+  const admin = adminFamilia();
+  const poderes = 'Puede eliminar deseos de cualquier lista y sacar a alguien de la familia.';
+  let textoAdmin;
+  if (!admin) textoAdmin = `Quien se agregue primero a la familia. ${poderes}`;
+  else if (esAdmin(yo)) textoAdmin = 'Eres tú: puedes eliminar deseos de cualquier lista y sacar a alguien de la familia.';
+  else textoAdmin = `Es ${esc(admin.nombre)}. ${poderes} Si te equivocaste en un deseo, pídeselo.`;
+
+  const punto = (nombre, titulo, texto) => `
+    <li><span class="ayuda-icono">${icono(nombre)}</span><div><strong>${titulo}</strong><p>${texto}</p></div></li>`;
+  abrirDialogo(`
+    <div class="formulario">
+      <h2>¿Cómo funciona?</h2>
+      <ul class="ayuda-lista">
+        ${punto('gift', '«Yo lo regalo»', 'Aparta un regalo de la lista de alguien para que nadie más lo compre. '
+          + 'Lo verás en «Mis compras», donde puedes marcarlo cuando ya lo tengas.')}
+        ${punto('eye-off', 'Es sorpresa', 'Tu familia puede apartar regalos de tu lista, pero tú no verás cuáles ni quién.')}
+        ${punto('lock', 'Los deseos quedan fijos', 'Una vez agregados no se editan ni se borran, '
+          + 'para que nadie compre algo que después cambió.')}
+        ${punto('crown', 'Admin', textoAdmin)}
+        ${estado.modo === 'local' ? punto('flask-conical', 'Modo demo', 'Los datos se guardan solo en este navegador. '
+          + 'Cuando se conecte la base de datos, toda la familia verá las mismas listas.') : ''}
+      </ul>
+      <div class="dialogo-acciones">
+        <button class="boton primario" data-accion="cerrar-dialogo">Entendido</button>
       </div>
     </div>`);
 }
@@ -637,9 +724,9 @@ function invitar() {
 // Acciones
 // ---------------------------------------------------------------------------
 
-function aviso(mensaje) {
+function aviso(mensaje, nombreIcono = 'check') {
   const toast = $('#toast');
-  toast.textContent = mensaje;
+  toast.innerHTML = `${icono(nombreIcono)}<span>${esc(mensaje)}</span>`;
   toast.classList.add('visible');
   clearTimeout(aviso.temporizador);
   aviso.temporizador = setTimeout(() => toast.classList.remove('visible'), 2600);
@@ -656,6 +743,7 @@ const acciones = {
   'cerrar-dialogo': () => dialogo.close(),
   recargar: () => location.reload(),
   menu,
+  ayuda,
 
   soy: (id) => elegirPersona(id),
   ver: (id) => {
@@ -671,9 +759,10 @@ const acciones = {
     almacen.guardar(claveYo(), null);
     render();
   },
+  // Solo el admin, y nunca a sí mismo (si no, el admin pasaría a ser otra persona).
   'eliminar-miembro': async (id) => {
     const miembro = buscarMiembro(id);
-    if (!miembro) return;
+    if (!miembro || !esAdmin(yoActual()) || id === estado.yo) return;
     const ok = await confirmar({
       titulo: `¿Eliminar a ${miembro.nombre}?`,
       texto: 'Se borrará su lista de deseos y se liberarán los regalos que había apartado. Esto no se puede deshacer.',
@@ -681,39 +770,43 @@ const acciones = {
     });
     if (!ok) return;
     await store.eliminarMiembro(id);
-    if (id === estado.yo) {
-      estado.yo = null;
-      almacen.guardar(claveYo(), null);
-    }
-    aviso('Perfil eliminado');
-    render();
+    aviso('Perfil eliminado', 'trash-2');
   },
 
   'nuevo-deseo': () => formDeseo(),
-  'editar-deseo': (id) => {
-    const deseo = buscarDeseo(id);
-    if (deseo) formDeseo(deseo);
-  },
+  'corregir-deseo': () => formDeseo(borradorDeseo ?? {}),
+  // Solo el admin puede borrar deseos (de cualquier lista).
   'borrar-deseo': async (id) => {
     const deseo = buscarDeseo(id);
-    if (!deseo) return;
+    const yo = yoActual();
+    if (!deseo || !esAdmin(yo)) return;
+    const esMio = deseo.miembroId === yo.id;
+    let texto = esMio
+      ? `«${deseo.titulo}» se quitará de tu lista.`
+      : `«${deseo.titulo}» se quitará de la lista de ${nombreDe(deseo.miembroId)}.`;
+    // En su propia lista el admin tampoco puede saber si algo está apartado.
+    if (!esMio && deseo.reservadoPor === yo.id) {
+      texto += ' Lo tenías apartado tú: saldrá de tus compras.';
+    } else if (!esMio && deseo.reservadoPor) {
+      texto += ` Ojo: ${nombreDe(deseo.reservadoPor)} ya lo apartó${deseo.comprado ? ' y lo marcó como comprado' : ''}.`;
+    }
     const ok = await confirmar({
       titulo: '¿Eliminar este deseo?',
-      texto: `«${deseo.titulo}» se quitará de tu lista.`,
+      texto: `${texto} Esto no se puede deshacer.`,
       boton: 'Eliminar',
     });
     if (!ok) return;
     await store.eliminarDeseo(id);
-    aviso('Deseo eliminado');
+    aviso('Deseo eliminado', 'trash-2');
   },
 
   reservar: async (id) => {
     try {
       await store.reservarDeseo(id, estado.yo);
-      aviso('¡Apartado! Ya está en «Mis compras» 🎁');
+      aviso('¡Apartado! Ya está en «Mis compras»', 'gift');
     } catch (err) {
-      if (err.code === 'ya-apartado') aviso('Alguien lo acaba de apartar 😅');
-      else if (err.code === 'no-existe') aviso('Ese deseo ya no existe');
+      if (err.code === 'ya-apartado') aviso('Alguien lo acaba de apartar', 'triangle-alert');
+      else if (err.code === 'no-existe') aviso('Ese deseo ya no existe', 'triangle-alert');
       else throw err;
     }
   },
@@ -722,7 +815,7 @@ const acciones = {
     aviso('Listo, quedó disponible otra vez');
   },
   comprado: async (id, el) => {
-    await store.actualizarDeseo(id, { comprado: el.checked });
+    await store.marcarComprado(id, el.checked);
   },
 
   invitar: () => invitar(),
@@ -734,7 +827,7 @@ const acciones = {
       input.select();
       document.execCommand('copy');
     }
-    el.textContent = '¡Copiado!';
+    el.innerHTML = `${icono('check')} ¡Copiado!`;
   },
 
   'crear-familia': () => {
@@ -761,13 +854,18 @@ document.addEventListener('click', async (e) => {
     await accion(elemento.dataset.id, elemento);
   } catch (err) {
     console.error(err);
-    aviso('Algo salió mal. Revisa tu conexión e intenta de nuevo.');
+    aviso('Algo salió mal. Revisa tu conexión e intenta de nuevo.', 'triangle-alert');
   }
 });
 
 // Clic fuera del contenido del diálogo (en el fondo oscuro) lo cierra.
 dialogo.addEventListener('click', (e) => {
   if (e.target === dialogo) dialogo.close();
+});
+
+// Al girar el teléfono o abrirse el teclado cambia el alto disponible.
+window.addEventListener('resize', () => {
+  if (dialogo.open) marcarDesborde();
 });
 
 iniciar();

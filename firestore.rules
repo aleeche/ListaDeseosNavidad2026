@@ -22,8 +22,19 @@ service cloud.firestore {
         return request.resource.data.keys().size() <= 12;
       }
 
+      // Un deseo no se edita después de creado (así nadie compra algo que luego cambió):
+      // solo puede cambiar quién lo regala y si ya se compró.
+      function cambioPermitido() {
+        return coleccion != 'deseos'
+          || request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['reservadoPor', 'comprado']);
+      }
+
+      // Que solo el admin borre deseos lo controla la app: sin cuentas de usuario,
+      // las reglas no pueden saber quién está escribiendo.
       allow read, delete: if codigoValido() && coleccionValida();
-      allow create, update: if codigoValido() && coleccionValida() && tamanoRazonable();
+      allow create: if codigoValido() && coleccionValida() && tamanoRazonable();
+      allow update: if codigoValido() && coleccionValida() && tamanoRazonable() && cambioPermitido();
     }
   }
 }

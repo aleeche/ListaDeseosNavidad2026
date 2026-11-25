@@ -5,6 +5,10 @@ const ENTIDADES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": 
 /** Escapa texto para insertarlo de forma segura dentro de HTML. */
 export const esc = (valor) => String(valor ?? '').replace(/[&<>"']/g, (c) => ENTIDADES[c]);
 
+/** Ícono de Lucide del sprite de index.html (decorativo: el texto de al lado da el significado). */
+export const icono = (nombre, clase = '') =>
+  `<svg class="icono${clase ? ` ${clase}` : ''}" aria-hidden="true" focusable="false"><use href="#i-${nombre}"></use></svg>`;
+
 /**
  * Normaliza un enlace escrito por el usuario.
  * Devuelve '' si está vacío, null si no es un enlace http(s) válido.
@@ -62,15 +66,23 @@ export function normalizarCodigo(texto) {
 /** Debe coincidir con la validación de firestore.rules. */
 export const codigoFamiliaValido = (codigo) => /^[a-z0-9-]{12,64}$/.test(codigo ?? '');
 
-export function cuentaRegresiva(hoy = new Date()) {
-  const mes = hoy.getMonth();
-  const dia = hoy.getDate();
-  if (mes === 11 && dia === 24) return '🌟 ¡Hoy es Nochebuena!';
-  if (mes === 11 && dia >= 25) return '🎄 ¡Feliz Navidad!';
-  const inicioHoy = new Date(hoy.getFullYear(), mes, dia);
-  const navidad = new Date(hoy.getFullYear(), 11, 25);
-  const dias = Math.round((navidad - inicioHoy) / 86_400_000);
-  return `⏳ Faltan ${dias} días para Navidad`;
+/**
+ * Cuánto falta para la medianoche del 24 al 25 de diciembre (hora local).
+ * fase: 'falta' | 'nochebuena' (todo el 24) | 'navidad' (del 25 al 31: ya no se cuenta).
+ */
+export function tiempoParaNavidad(ahora = new Date()) {
+  const mes = ahora.getMonth();
+  const dia = ahora.getDate();
+  if (mes === 11 && dia >= 25) return { fase: 'navidad' };
+  const navidad = new Date(ahora.getFullYear(), 11, 25);
+  const total = Math.max(0, Math.floor((navidad - ahora) / 1000));
+  return {
+    fase: mes === 11 && dia === 24 ? 'nochebuena' : 'falta',
+    dias: Math.floor(total / 86_400),
+    horas: Math.floor(total / 3600) % 24,
+    minutos: Math.floor(total / 60) % 60,
+    segundos: total % 60,
+  };
 }
 
 /** Color estable (0–5) para el avatar de cada integrante. */

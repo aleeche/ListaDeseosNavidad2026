@@ -85,9 +85,10 @@ export function crearStoreLocal() {
       return id;
     },
 
-    async actualizarDeseo(id, cambios) {
+    // Un deseo no se edita después de creado: solo cambian el apartado y si ya se compró.
+    async marcarComprado(id, comprado) {
       modificar((d) => {
-        if (d.deseos[id]) Object.assign(d.deseos[id], cambios);
+        if (d.deseos[id]) d.deseos[id].comprado = comprado;
       });
     },
 

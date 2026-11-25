@@ -95,8 +95,10 @@ export async function crearStoreFirebase(config, familia) {
       return ref.id;
     },
 
-    async actualizarDeseo(id, cambios) {
-      await fs.updateDoc(fs.doc(colDeseos, id), cambios);
+    // Un deseo no se edita después de creado (firestore.rules lo impide);
+    // solo cambian el apartado (reservar/liberar) y si ya se compró.
+    async marcarComprado(id, comprado) {
+      await fs.updateDoc(fs.doc(colDeseos, id), { comprado });
     },
 
     async eliminarDeseo(id) {
