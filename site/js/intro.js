@@ -20,5 +20,6 @@ export function iniciarIntro() {
     if (e.target !== intro) return;
     intro.remove();
     document.removeEventListener('keydown', saltar);
+    document.dispatchEvent(new Event('ldn:intro-fin')); // cuenta.js espera esto para celebrar Navidad
   });
 }

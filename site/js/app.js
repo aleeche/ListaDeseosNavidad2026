@@ -16,6 +16,7 @@ import {
 import { iniciarCuenta } from './cuenta.js';
 import { iniciarIntro } from './intro.js';
 import { iniciarNieve } from './nieve.js';
+import { DURACION_TRINEO, trineo } from './trineo.js';
 
 const EMOJIS = ['🎅', '🤶', '🧑‍🎄', '⛄', '🦌', '🧝', '🎄', '⭐', '🍪', '🐧', '🐻', '🦊', '🐱', '🐶', '🦄', '🎁'];
 const PRIORIDADES = { 3: '¡Lo que más quiero!', 2: 'Me encantaría', 1: 'Me gustaría' };
@@ -32,9 +33,14 @@ const estado = {
   vista: null, // id del integrante cuya lista se ve, o "compras"
   datos: { miembros: [], deseos: [] },
   recienCreada: false,
+  trineo: null, // { id, inicio }: deseo que Santa está cruzando tras «Yo lo regalo» (solo en este dispositivo)
+  salto: null, // { id, inicio }: compra recién marcada; su check da un saltito
 };
 
+const DURACION_SALTO = 600; // ms; .check.salta en el CSS dura un poco menos
+
 let store = null;
+let cuenta = null; // { celebrar } de la cuenta regresiva
 let borradorDeseo = null; // lo escrito en «Nuevo deseo», para volver a corregirlo desde la confirmación
 
 const claveYo = () => `ldn.yo.${estado.familia}`;
@@ -61,6 +67,20 @@ const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
 const estrellas = (n) =>
   `<span class="estrellas-iconos" aria-hidden="true">${[1, 2, 3]
     .map((i) => icono('star', i <= n ? 'icono-lleno' : 'estrella-vacia')).join('')}</span>`;
+/** Milisegundos que lleva el trineo cruzando el deseo `id`, o null si no lo está cruzando. */
+const vueloTrineo = (id) => {
+  if (estado.trineo?.id !== id) return null;
+  const transcurrido = performance.now() - estado.trineo.inicio;
+  return transcurrido < DURACION_TRINEO ? transcurrido : null;
+};
+/** Atributos del check de «Mis compras»: si se acaba de marcar, da un saltito que sigue aunque se repinte. */
+const atributosCheck = (id) => {
+  if (estado.salto?.id !== id) return 'class="check"';
+  const transcurrido = performance.now() - estado.salto.inicio;
+  return transcurrido < DURACION_SALTO
+    ? `class="check salta" style="--desfase:${-Math.round(transcurrido)}ms"`
+    : 'class="check"';
+};
 const insigniaAdmin = () => `<span class="insignia-admin">${icono('crown')} Admin</span>`;
 const botonAyuda = () =>
   `<button class="boton-ayuda" data-accion="ayuda" aria-label="¿Cómo funciona?" title="¿Cómo funciona?">${icono('circle-help')}</button>`;
@@ -71,8 +91,9 @@ const botonAyuda = () =>
 
 async function iniciar() {
   iniciarIntro();
-  iniciarNieve($('#nieve'));
-  iniciarCuenta($('#cuenta'));
+  const nieve = iniciarNieve($('#nieve'));
+  // En la última semana nieva más cada día (nivel 1–7).
+  cuenta = iniciarCuenta($('#cuenta'), { alCambiarNivel: (nivel) => nieve?.intensidad(1 + nivel * 0.2) });
 
   // El enlace de invitación trae ?familia=codigo: se guarda y se limpia de la URL.
   const params = new URLSearchParams(location.search);
@@ -350,14 +371,22 @@ function tarjetaDeseo(d, esMia, yo, soyAdmin) {
     clase = ' apartado';
     acciones = `<span class="sello">${icono('lock')} Ya lo regala ${esc(nombreDe(d.reservadoPor))}</span>`;
   } else {
-    acciones = `<button class="boton regalo" data-accion="reservar" data-id="${id}">${icono('gift')} Yo lo regalo</button>`;
+    // Mientras se confirma el apartado (el trineo ya va en camino) no se puede volver a tocar.
+    const enCamino = vueloTrineo(d.id) !== null;
+    acciones = `<button class="boton regalo" data-accion="reservar" data-id="${id}"${enCamino ? ' disabled' : ''}>${icono('gift')} Yo lo regalo</button>`;
   }
   if (soyAdmin) {
     acciones += `<button class="boton fantasma peligro boton-icono" data-accion="borrar-deseo" data-id="${id}"
       aria-label="Eliminar «${esc(d.titulo)}»" title="Eliminar">${icono('trash-2')}</button>`;
   }
 
-  return `<li class="deseo${clase}">${cuerpoDeseo(d)}${acciones ? `<div class="deseo-acciones">${acciones}</div>` : ''}</li>`;
+  // Santa cruza la tarjeta recién apartada y la va pintando de dorado (.en-vuelo deja el fondo
+  // normal mientras tanto). Nunca en la lista propia (sería delatar la sorpresa).
+  const transcurrido = esMia ? null : vueloTrineo(d.id);
+  const santa = transcurrido === null ? '' : trineo(transcurrido);
+  if (santa) clase += ' en-vuelo';
+
+  return `<li class="deseo${clase}">${cuerpoDeseo(d)}${acciones ? `<div class="deseo-acciones">${acciones}</div>` : ''}${santa}</li>`;
 }
 
 function panelCompras(compras) {
@@ -376,7 +405,7 @@ function panelCompras(compras) {
         <ul class="deseos">
           ${lista.map((d) => `
             <li class="deseo compra${d.comprado ? ' comprado' : ''}">
-              <label class="check">
+              <label ${atributosCheck(d.id)}>
                 <input type="checkbox" data-accion="comprado" data-id="${esc(d.id)}"${d.comprado ? ' checked' : ''}>
                 <span>${d.comprado ? 'Comprado' : 'Por comprar'}</span>
               </label>
@@ -744,6 +773,7 @@ const acciones = {
   recargar: () => location.reload(),
   menu,
   ayuda,
+  celebrar: () => cuenta?.celebrar(), // la hoja «¡Feliz Navidad!» repite la celebración de medianoche
 
   soy: (id) => elegirPersona(id),
   ver: (id) => {
@@ -801,10 +831,23 @@ const acciones = {
   },
 
   reservar: async (id) => {
+    // Santa sale de inmediato (con Firestore la transacción tarda un momento en confirmarse).
+    const viaje = matchMedia('(prefers-reduced-motion: reduce)').matches ? null : { id, inicio: performance.now() };
+    if (viaje) {
+      estado.trineo = viaje;
+      setTimeout(() => {
+        if (estado.trineo === viaje) estado.trineo = null;
+      }, DURACION_TRINEO);
+      render();
+    }
     try {
       await store.reservarDeseo(id, estado.yo);
       aviso('¡Apartado! Ya está en «Mis compras»', 'gift');
     } catch (err) {
+      if (viaje && estado.trineo === viaje) {
+        estado.trineo = null;
+        render();
+      }
       if (err.code === 'ya-apartado') aviso('Alguien lo acaba de apartar', 'triangle-alert');
       else if (err.code === 'no-existe') aviso('Ese deseo ya no existe', 'triangle-alert');
       else throw err;
@@ -815,6 +858,10 @@ const acciones = {
     aviso('Listo, quedó disponible otra vez');
   },
   comprado: async (id, el) => {
+    // Al marcarlo como comprado, el check da un saltito (la lista se repinta con el snapshot).
+    if (el.checked && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      estado.salto = { id, inicio: performance.now() };
+    }
     await store.marcarComprado(id, el.checked);
   },
 
@@ -856,6 +903,16 @@ document.addEventListener('click', async (e) => {
     console.error(err);
     aviso('Algo salió mal. Revisa tu conexión e intenta de nuevo.', 'triangle-alert');
   }
+});
+
+// Cuando el trineo termina de cruzar se quitan sus capas (para no dejar animaciones corriendo
+// fuera de vista) y la tarjeta se queda con su dorado normal (.mio), idéntico al de la pintura.
+document.addEventListener('animationend', (e) => {
+  if (e.animationName !== 'trineo-cruza') return;
+  const tarjeta = e.target.closest('.deseo');
+  tarjeta?.classList.remove('en-vuelo');
+  tarjeta?.querySelector('.trineo-pintura')?.remove();
+  e.target.closest('.trineo')?.remove();
 });
 
 // Clic fuera del contenido del diálogo (en el fondo oscuro) lo cierra.

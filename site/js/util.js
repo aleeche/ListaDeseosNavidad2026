@@ -69,15 +69,19 @@ export const codigoFamiliaValido = (codigo) => /^[a-z0-9-]{12,64}$/.test(codigo 
 /**
  * Cuánto falta para la medianoche del 24 al 25 de diciembre (hora local).
  * fase: 'falta' | 'nochebuena' (todo el 24) | 'navidad' (del 25 al 31: ya no se cuenta).
+ * nivel: 0 hasta el 17; en la última semana sube un punto por día (18 → 1 … 24 → 7) y
+ * sigue en 7 en Navidad. La guirnalda del contador enciende un foco por punto.
  */
 export function tiempoParaNavidad(ahora = new Date()) {
   const mes = ahora.getMonth();
   const dia = ahora.getDate();
-  if (mes === 11 && dia >= 25) return { fase: 'navidad' };
+  const nivel = mes === 11 && dia >= 18 ? Math.min(dia - 17, 7) : 0;
+  if (mes === 11 && dia >= 25) return { fase: 'navidad', nivel };
   const navidad = new Date(ahora.getFullYear(), 11, 25);
   const total = Math.max(0, Math.floor((navidad - ahora) / 1000));
   return {
     fase: mes === 11 && dia === 24 ? 'nochebuena' : 'falta',
+    nivel,
     dias: Math.floor(total / 86_400),
     horas: Math.floor(total / 3600) % 24,
     minutos: Math.floor(total / 60) % 60,

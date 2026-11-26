@@ -425,6 +425,259 @@ code {
   letter-spacing: 0;
 }
 
+/* «¡Feliz Navidad!» es un botón que repite la celebración de medianoche */
+.hoja-boton {
+  display: block;
+  padding: 0;
+  border: 0;
+  text-align: center;
+  transition: transform 0.15s ease;
+}
+
+.hoja-boton:hover {
+  transform: translateY(-2px) rotate(-1deg);
+}
+
+.hoja-boton:focus-visible {
+  outline: 2px solid var(--oro);
+  outline-offset: 4px;
+}
+
+/* Última semana: guirnalda con un foco por día (cuenta.js). Los apagados son los días que faltan;
+   el del día palpita y en Nochebuena (y Navidad) la luz recorre todos. */
+.cuenta-luces {
+  position: relative;
+  z-index: 1;
+  justify-self: stretch;
+  display: flex;
+  justify-content: space-between;
+  height: 30px;
+  margin-bottom: clamp(-14px, -1.4vh, -10px); /* los focos cuelgan casi hasta las hojas */
+  padding: 0 4px;
+}
+
+.cuenta-cordon {
+  position: absolute;
+  top: 0;
+  left: 15px; /* del centro del primer foco al del último */
+  width: calc(100% - 30px);
+  height: 11px;
+  overflow: visible;
+}
+
+.cuenta-cordon path {
+  fill: none;
+  stroke: #ece4d1;
+  stroke-width: 2;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.foco {
+  width: 22px;
+  height: 28px;
+  overflow: visible;
+  transform-origin: 50% 0;
+  rotate: 8deg;
+}
+
+.foco:nth-of-type(even) {
+  rotate: -8deg;
+}
+
+.foco-oro {
+  --foco: #ffc94a;
+}
+
+.foco-rojo {
+  --foco: #ff6a55;
+}
+
+.foco-crema {
+  --foco: #fff1c9;
+}
+
+.foco-vidrio {
+  fill: #7d9179; /* apagado: vidrio sin luz */
+  stroke: rgba(0, 0, 0, 0.25);
+  stroke-width: 0.6;
+}
+
+.foco-halo {
+  fill: var(--foco);
+  opacity: 0;
+}
+
+.foco.encendido .foco-vidrio {
+  fill: var(--foco);
+}
+
+.foco.encendido .foco-halo {
+  opacity: 0.6;
+  animation: foco-titila 1.8s ease-in-out calc(var(--i) * -0.37s) infinite alternate;
+}
+
+/* El foco que se encendió hoy palpita más */
+.foco.de-hoy .foco-halo {
+  animation: foco-de-hoy 1.3s ease-in-out infinite;
+}
+
+/* Nochebuena y Navidad: la luz corre de un foco al siguiente */
+.cuenta-luces.todas .foco .foco-halo {
+  animation: foco-persigue 1.4s ease-in-out calc(var(--i) * 0.2s) infinite;
+}
+
+.fiesta .cuenta-luces .foco .foco-halo {
+  animation-duration: 0.6s;
+}
+
+@keyframes foco-titila {
+  from {
+    opacity: 0.4;
+  }
+
+  to {
+    opacity: 0.8;
+  }
+}
+
+@keyframes foco-de-hoy {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes foco-persigue {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+
+  15% {
+    opacity: 1;
+  }
+}
+
+/* Medianoche: las hojas en 00 dan una vuelta completa sobre su pliegue, una tras otra, como
+   las de un reloj de hojas, y en el último cuarto de giro quedan de canto (se esfuman)… */
+.girando .hoja {
+  animation: hoja-vuelta 1s cubic-bezier(0.45, 0, 0.4, 1) forwards;
+}
+
+.girando .hoja:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.girando .hoja:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.girando .hoja:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+/* …y cae la hoja de Navidad, que se balancea al quedar colgada */
+.cuenta-hojas.llega .hoja-ancha {
+  transform-origin: 50% 0;
+  animation: hoja-llega 0.9s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+@keyframes hoja-vuelta {
+  from {
+    transform: perspective(500px) rotateX(0deg);
+  }
+
+  85% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+    transform: perspective(500px) rotateX(-450deg);
+  }
+}
+
+@keyframes hoja-llega {
+  from {
+    opacity: 0;
+    transform: perspective(700px) rotateX(-100deg);
+  }
+
+  35% {
+    opacity: 1;
+  }
+
+  to {
+    transform: perspective(700px) rotateX(0);
+  }
+}
+
+/* Santa cruza el cielo del encabezado soltando regalos (detrás del título y de las luces).
+   Reusa el trineo de las tarjetas; la capa entera sube un poco mientras avanza. */
+.trineo.santa-cielo {
+  --ancho-arte: clamp(210px, 26vw, 360px);
+  inset: auto 0;
+  top: clamp(10px, 2.5vh, 26px);
+  z-index: 0;
+  height: calc(var(--ancho-arte) * 80 / 306);
+  overflow: visible;
+  border-radius: 0;
+  animation: santa-cielo var(--duracion) ease-out both;
+}
+
+.trineo-regalo-cae {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: trineo-regalo-cae 1.6s cubic-bezier(0.45, 0, 0.85, 0.5) var(--d) both;
+}
+
+@keyframes santa-cielo {
+  from {
+    transform: translateY(30px);
+  }
+
+  to {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes trineo-regalo-cae {
+  from {
+    opacity: 0;
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  6% {
+    opacity: 1;
+  }
+
+  80% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+    transform: translate(-36px, 190px) rotate(-220deg);
+  }
+}
+
+/* La guirnalda del marco celebra a medianoche */
+.fiesta .luces {
+  animation: luces-fiesta 0.45s ease-in-out 12 alternate;
+}
+
+@keyframes luces-fiesta {
+  to {
+    filter: brightness(1.45);
+  }
+}
+
 .sesion {
   display: inline-flex;
   align-items: center;
@@ -450,9 +703,12 @@ code {
 }
 
 /* ---------- Animación de entrada ---------- */
-/* Línea de tiempo (≈3.2 s): las estrellas brotan de abajo hacia arriba (orden --no),
-   el árbol se sostiene un momento, las estrellas caen y la capa se desvanece. Al terminar
-   queda invisible y deja pasar los clics aunque js/intro.js no cargue. */
+/* Línea de tiempo (≈3.5 s):
+   0–1.9 s   las estrellas brotan de abajo hacia arriba (orden --no);
+   1.35–2.5  una ola de luz enciende el árbol de abajo hacia arriba y la punta destella con su halo;
+   2.4–3.4   el árbol se deshace en destellos que suben (también de abajo hacia arriba) y la
+             estrella de la punta se va con un último destello mientras la capa se desvanece.
+   Al terminar queda invisible y deja pasar los clics aunque js/intro.js no cargue. */
 
 .intro {
   display: none;
@@ -466,16 +722,21 @@ code {
   place-items: center;
   background: var(--copos) 0 0 / 360px 360px, radial-gradient(130% 120% at 50% 0%, var(--hero-2) 0%, var(--hero-1) 70%);
   cursor: pointer;
-  animation: intro-salida 0.6s ease-in 2.6s forwards;
+  animation: intro-salida 0.6s ease-in-out 2.85s forwards;
 }
 
 .intro svg {
   height: min(78vh, 125vw);
   width: auto;
   overflow: visible;
+  animation: intro-acercar 1s ease-in 2.4s forwards;
 }
 
 .intro path {
+  /* Hacia dónde sube cada estrella al deshacerse (unidades del viewBox) */
+  --sube: -9px;
+  --deriva: 0px;
+
   fill: var(--intro-verde);
   stroke: var(--intro-verde);
   stroke-width: 0.2;
@@ -484,23 +745,57 @@ code {
   transform-origin: 50% 50%;
   animation:
     intro-estrella 0.6s cubic-bezier(0.74, 1.72, 0.57, 1.01) calc(var(--no) * 13ms) forwards,
-    intro-caida 0.5s ease-in calc(2.4s + var(--no) * 3ms) forwards;
+    intro-encender 0.5s ease-in-out calc(1.35s + var(--no) * 6ms),
+    intro-disolver 0.6s ease-in calc(2.4s + var(--no) * 4ms) forwards;
 }
 
-/* Algunas estrellas son esferas, con los colores de la guirnalda */
-.intro path:nth-child(7n + 3) {
+.intro path:nth-of-type(3n) {
+  --sube: -13px;
+  --deriva: -2px;
+}
+
+.intro path:nth-of-type(3n + 1) {
+  --sube: -6px;
+  --deriva: 2px;
+}
+
+.intro path:nth-of-type(5n) {
+  --deriva: 3.5px;
+}
+
+/* Algunas estrellas son esferas, con los colores de la guirnalda (nth-of-type: el halo y
+   los <defs> no cuentan) */
+.intro path:nth-of-type(7n + 3) {
   fill: var(--intro-rojo);
   stroke: var(--intro-rojo);
 }
 
-.intro path:nth-child(9n + 5),
+.intro path:nth-of-type(9n + 5),
 .intro .punta {
   fill: var(--intro-oro);
   stroke: var(--intro-oro);
 }
 
+.intro .punta {
+  animation:
+    intro-estrella 0.6s cubic-bezier(0.74, 1.72, 0.57, 1.01) 1.3s forwards,
+    intro-encender 0.5s ease-in-out 1.95s,
+    intro-punta 0.7s ease-in-out 1.95s forwards,
+    intro-punta-salida 0.5s ease-in 2.85s forwards;
+}
+
+.intro .halo {
+  opacity: 0;
+  transform: scale(0);
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation:
+    intro-halo 0.8s ease-out 1.9s forwards,
+    intro-halo-salida 0.55s ease-in 2.85s forwards;
+}
+
 .intro-activa .hero-contenido {
-  animation: intro-hero 0.7s ease-out 2.7s both;
+  animation: intro-hero 0.7s ease-out 2.95s both;
 }
 
 /* Al tocar la pantalla o una tecla: salida rápida */
@@ -518,13 +813,93 @@ code {
   }
 }
 
-@keyframes intro-caida {
+@keyframes intro-encender {
+  45% {
+    fill: #fff6d8;
+    stroke: #fff6d8;
+  }
+}
+
+@keyframes intro-disolver {
   from {
-    transform: translateY(0) scale(1);
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
   }
 
   to {
-    transform: translateY(40px) scale(0);
+    opacity: 0;
+    transform: translate(var(--deriva), var(--sube)) scale(0.15);
+  }
+}
+
+@keyframes intro-punta {
+  from {
+    transform: scale(1) rotate(0deg);
+  }
+
+  45% {
+    transform: scale(1.8) rotate(50deg);
+  }
+
+  to {
+    transform: scale(1.4) rotate(72deg);
+  }
+}
+
+@keyframes intro-punta-salida {
+  from {
+    opacity: 1;
+    transform: scale(1.4) rotate(72deg);
+  }
+
+  35% {
+    opacity: 1;
+    transform: scale(2.1) rotate(96deg);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.2) rotate(144deg);
+  }
+}
+
+@keyframes intro-halo {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+
+  55% {
+    opacity: 1;
+    transform: scale(1.3);
+  }
+
+  to {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+}
+
+@keyframes intro-halo-salida {
+  from {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+
+  35% {
+    opacity: 1;
+    transform: scale(1.6);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(3);
+  }
+}
+
+@keyframes intro-acercar {
+  to {
+    transform: scale(1.05);
   }
 }
 
@@ -550,19 +925,8 @@ code {
   width: 100%;
   max-width: calc(920px + 2 * var(--canal));
   margin: 0 auto;
-  padding: 0 var(--canal) 40px;
-}
-
-.pie {
   /* deja libre la esquina del acebo de abajo */
-  padding: 0 calc(var(--acebo) * 0.7) calc(var(--acebo) * 0.45);
-  text-align: center;
-  font-size: 13px;
-  color: var(--tenue);
-}
-
-.pie .icono {
-  color: var(--frutilla);
+  padding: 0 var(--canal) calc(60px + var(--acebo) * 0.45);
 }
 
 .cargando {
@@ -966,6 +1330,8 @@ code {
 }
 
 .deseo {
+  position: relative; /* para el trineo que la cruza */
+  isolation: isolate; /* el dorado que pinta el trineo (z-index: -1) queda sobre el fondo y bajo el texto */
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -978,6 +1344,12 @@ code {
 .deseo.mio {
   border-color: var(--oro-borde);
   background: var(--oro-suave);
+}
+
+/* Mientras Santa la cruza, el dorado de «Lo regalas tú» lo va pintando .trineo-pintura detrás de él */
+.deseo.en-vuelo {
+  border-color: var(--linea);
+  background: var(--superficie);
 }
 
 .deseo.apartado {
@@ -1102,6 +1474,185 @@ a.etiqueta:hover {
   color: var(--pino);
 }
 
+/* «Yo lo regalo»: Santa cruza la tarjeta en su trineo (js/trineo.js).
+   Dos animaciones con el mismo tiempo suman el recorrido: la capa avanza el ancho de la
+   tarjeta (100 % de sí misma) y el dibujo, que empieza a su izquierda, avanza su propio
+   ancho. Así entra por el borde izquierdo y sale completo por el derecho en cualquier
+   tamaño. --desfase (negativo) retoma el viaje cuando un snapshot vuelve a pintar la lista. */
+.trineo,
+.trineo-pintura {
+  --ancho-arte: clamp(220px, 42%, 360px);
+}
+
+.trineo {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.trineo-viaje {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  animation: trineo-cruza var(--duracion) linear var(--desfase) both;
+}
+
+/* El dorado de la tarjeta apartada aparece detrás del trineo. Es el mismo aspecto que .deseo.mio
+   (sobre --superficie, el fondo del panel), así que al terminar se cambia por esa clase sin salto.
+   --avance va de 0 a 1 con el mismo tiempo que el viaje; el borde del dorado va en la punta del
+   trineo (0.48 del dibujo queda delante de ella) y se difumina 60px hacia atrás. */
+@property --avance {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+.trineo-pintura {
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border: 1px solid var(--oro-borde);
+  border-radius: inherit;
+  background: var(--oro-suave);
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to right,
+    #000 calc(var(--avance) * (100% + var(--ancho-arte)) - 0.48 * var(--ancho-arte) - 60px),
+    transparent calc(var(--avance) * (100% + var(--ancho-arte)) - 0.48 * var(--ancho-arte)));
+  mask-image: linear-gradient(to right,
+    #000 calc(var(--avance) * (100% + var(--ancho-arte)) - 0.48 * var(--ancho-arte) - 60px),
+    transparent calc(var(--avance) * (100% + var(--ancho-arte)) - 0.48 * var(--ancho-arte)));
+  animation: trineo-avance var(--duracion) linear var(--desfase) both;
+}
+
+.trineo-arte {
+  flex: none;
+  width: var(--ancho-arte);
+  height: auto;
+  aspect-ratio: 306 / 80; /* el viewBox de js/trineo.js */
+  overflow: visible;
+  filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.35));
+  animation: trineo-entra var(--duracion) linear var(--desfase) both;
+}
+
+.trineo-vuelo {
+  animation: trineo-vaiven 0.9s ease-in-out var(--desfase) infinite alternate;
+}
+
+.trineo-reno,
+.trineo-patas,
+.trineo-destello {
+  transform-box: fill-box;
+}
+
+.trineo-reno {
+  animation: trineo-reno 0.45s ease-in-out infinite alternate;
+  animation-delay: calc(var(--desfase) + var(--fase));
+}
+
+.trineo-patas-adelante {
+  transform-origin: 15% 15%;
+  animation: trineo-patas-adelante 0.45s ease-in-out infinite alternate;
+  animation-delay: calc(var(--desfase) + var(--fase));
+}
+
+.trineo-patas-atras {
+  transform-origin: 90% 10%;
+  animation: trineo-patas-atras 0.45s ease-in-out infinite alternate;
+  animation-delay: calc(var(--desfase) + var(--fase));
+}
+
+.trineo-destello {
+  transform-origin: 50% 50%;
+  animation: trineo-destello 0.6s ease-in-out infinite alternate;
+  animation-delay: calc(var(--desfase) + var(--i) * -0.17s);
+}
+
+@keyframes trineo-avance {
+  from {
+    --avance: 0;
+  }
+
+  to {
+    --avance: 1;
+  }
+}
+
+@keyframes trineo-cruza {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes trineo-entra {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes trineo-vaiven {
+  from {
+    transform: translateY(4px);
+  }
+
+  to {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes trineo-reno {
+  from {
+    transform: translateY(1.2px);
+  }
+
+  to {
+    transform: translateY(-1.2px);
+  }
+}
+
+@keyframes trineo-patas-adelante {
+  from {
+    transform: rotate(-16deg);
+  }
+
+  to {
+    transform: rotate(10deg);
+  }
+}
+
+@keyframes trineo-patas-atras {
+  from {
+    transform: rotate(14deg);
+  }
+
+  to {
+    transform: rotate(-10deg);
+  }
+}
+
+@keyframes trineo-destello {
+  from {
+    opacity: 0.35;
+    transform: scale(0.45) rotate(0deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1.15) rotate(45deg);
+  }
+}
+
 /* Lista de compras */
 
 .grupo + .grupo {
@@ -1140,6 +1691,49 @@ a.etiqueta:hover {
 .deseo.comprado .check {
   background: var(--pino-suave);
   color: var(--pino);
+}
+
+/* Al marcar «Comprado» la pastilla da un saltito (se aplasta un poco al caer) y el check rebota.
+   --desfase (negativo) lo retoma si la lista se repinta a medio salto (app.js → atributosCheck). */
+.check.salta {
+  transform-origin: 50% 100%;
+  animation: check-salto 0.55s cubic-bezier(0.3, 0.7, 0.4, 1) var(--desfase, 0ms) both;
+}
+
+.check.salta input {
+  animation: check-rebote 0.45s ease-out var(--desfase, 0ms) both;
+}
+
+@keyframes check-salto {
+  30% {
+    transform: translateY(-8px) scale(1.03, 1.06);
+  }
+
+  55% {
+    transform: translateY(0) scale(1.08, 0.9);
+  }
+
+  75% {
+    transform: translateY(-2px) scale(0.98, 1.03);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+@keyframes check-rebote {
+  from {
+    transform: scale(0.6);
+  }
+
+  50% {
+    transform: scale(1.35);
+  }
+
+  to {
+    transform: scale(1);
+  }
 }
 
 .deseo.comprado h3 {
@@ -1190,7 +1784,7 @@ a.etiqueta:hover {
     min-height: 0;
     display: flex;
     flex-direction: column;
-    padding-bottom: 8px;
+    padding-bottom: calc(var(--marco-margen) + 44px); /* separa la lista del marco y del acebo */
   }
 
   #app {
@@ -1237,11 +1831,6 @@ a.etiqueta:hover {
   .bienvenida {
     overflow-y: auto;
   }
-
-  .pie {
-    padding-top: 4px;
-    padding-bottom: calc(var(--marco-margen) + 12px);
-  }
 }
 
 /* Pantallas bajas (laptops): todo un poco más compacto para dejarle espacio a la lista */
@@ -1263,9 +1852,8 @@ a.etiqueta:hover {
     font-size: 32px;
   }
 
-  .pie {
-    font-size: 12px;
-    padding-bottom: calc(var(--marco-margen) + 6px);
+  .pagina {
+    padding-bottom: calc(var(--marco-margen) + 36px);
   }
 }
 
@@ -1734,5 +2322,17 @@ a.etiqueta:hover {
 
   .intro-activa .hero-contenido {
     animation: none;
+  }
+
+  .trineo {
+    display: none;
+  }
+
+  /* Los focos de la guirnalda se quedan quietos (encendidos o apagados) */
+  .cuenta-luces .foco-halo,
+  .fiesta .luces,
+  .check.salta,
+  .check.salta input {
+    animation: none !important;
   }
 }

@@ -1,15 +1,19 @@
 // Nieve cayendo sobre el encabezado. Respeta "reducir movimiento" del sistema
 // (en ese caso dibuja la nieve quieta) y se pausa cuando la pestaña no se ve.
+// Devuelve { intensidad(factor) }: la cuenta regresiva la espesa en la última semana.
 
 export function iniciarNieve(canvas) {
   const ctx = canvas?.getContext?.('2d');
-  if (!ctx) return;
+  if (!ctx) return null;
 
   const reducirMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)');
   let ancho = 0;
   let alto = 0;
   let copos = [];
   let animacion = null;
+  let factor = 1;
+
+  const cantidadDeseada = () => Math.round(Math.min(120, (ancho * alto) / 3500) * factor);
 
   const nuevoCopo = (enCualquierAltura) => ({
     x: Math.random() * ancho,
@@ -47,8 +51,7 @@ export function iniciarNieve(canvas) {
     canvas.width = Math.round(ancho * dpr);
     canvas.height = Math.round(alto * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const cantidad = Math.round(Math.min(120, (ancho * alto) / 3500));
-    copos = Array.from({ length: cantidad }, () => nuevoCopo(true));
+    copos = Array.from({ length: cantidadDeseada() }, () => nuevoCopo(true));
     if (!animacion) dibujar(false);
   }
 
@@ -79,4 +82,16 @@ export function iniciarNieve(canvas) {
 
   ajustar();
   arrancar();
+
+  return {
+    /** Multiplica la cantidad de copos (1 = normal). Agrega o quita copos sin reiniciar los demás. */
+    intensidad(nuevo) {
+      if (nuevo === factor) return;
+      factor = nuevo;
+      const objetivo = cantidadDeseada();
+      while (copos.length < objetivo) copos.push(nuevoCopo(true));
+      copos.length = objetivo;
+      if (!animacion) dibujar(false);
+    },
+  };
 }

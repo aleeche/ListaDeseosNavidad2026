@@ -57,7 +57,6 @@
     <symbol id="i-external-link" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
     <symbol id="i-tag" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></symbol>
     <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></symbol>
-    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></symbol>
     <symbol id="i-snowflake" viewBox="0 0 24 24"><path d="m10 20-1.25-2.5L6 18"/><path d="M10 4 8.75 6.5 6 6"/><path d="m14 20 1.25-2.5L18 18"/><path d="m14 4 1.25 2.5L18 6"/><path d="m17 21-3-6h-4"/><path d="m17 3-3 6 1.5 3"/><path d="M2 12h6.5L10 9"/><path d="m20 10-1.5 2 1.5 2"/><path d="M22 12h-6.5L14 15"/><path d="m4 10 1.5 2L4 14"/><path d="m7 21 3-6-1.5-3"/><path d="m7 3 3 6h4"/></symbol>
     <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
     <symbol id="i-message-circle" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></symbol>
@@ -119,9 +118,18 @@
   <!-- Animación de entrada: árbol de estrellas que aparecen de abajo hacia arriba
        (inspirado en un pen de Uwe Chardon en CodePen; sin su cola y con las estrellas
        acomodadas en un triángulo simétrico con la punta en x=50). Solo se ve con
-       html.intro-activa; --no es el orden de aparición de cada estrella. -->
+       html.intro-activa; --no es el orden de aparición de cada estrella y el halo
+       es el resplandor de la estrella de la punta. -->
   <div id="intro" class="intro" aria-hidden="true">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="3 -1 94 134">
+      <defs>
+        <radialGradient id="intro-halo">
+          <stop offset="0" stop-color="#fff3c4" stop-opacity=".95"/>
+          <stop offset=".3" stop-color="#ffd36e" stop-opacity=".45"/>
+          <stop offset="1" stop-color="#ffd36e" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <circle class="halo" cx="50" cy="3.6" r="11" fill="url(#intro-halo)"/>
       <path class="punta" d="M51.93 6.37l-1.88 -.93 -1.85 1.01 .32 -2.07 -1.54 -1.43 2.08 -.34 .9 -1.9 .96 1.86 2.1 .25 -1.48 1.5z" style="--no:100"/>
       <path d="M93.71 131.75l-2.42 -1.71 -2.78 1.03 .87 -2.83 -1.83 -2.33 2.96 -.05 1.64 -2.46 .96 2.8 2.85 .8 -2.37 1.78z" style="--no:1"/>
       <path d="M88.43 120.97l-1.92 .87 -.37 2.08 -1.42 -1.55 -2.1 .29 1.05 -1.84 -.93 -1.9 2.07 .43 1.52 -1.47 .24 2.1z" style="--no:2"/>
@@ -227,8 +235,6 @@
       <p class="cargando">Cargando la lista…</p>
     </main>
   </div>
-
-  <footer class="pie">Hecho con cariño para la familia <svg class="icono" aria-hidden="true"><use href="#i-heart"></use></svg></footer>
 
   <dialog id="dialogo" class="dialogo"></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
