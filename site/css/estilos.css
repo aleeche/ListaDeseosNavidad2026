@@ -1176,6 +1176,15 @@ code {
 .miembro-opcion.nuevo {
   border-style: dashed;
   color: var(--tenue);
+  transition: transform 0.12s ease, border-color 0.12s ease, background-color 0.12s ease, color 0.12s ease;
+}
+
+/* En hover el borde punteado pasa a continuo: el punteado dorado de 1px, al subir el botón,
+   se ve cortado y disparejo con escalas de pantalla fraccionarias (125 %, 150 %). */
+.miembro-opcion.nuevo:hover {
+  border-style: solid;
+  background: var(--oro-suave);
+  color: var(--tinta);
 }
 
 .miembro-opcion .insignia-admin {
