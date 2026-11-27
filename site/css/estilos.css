@@ -1328,6 +1328,14 @@ code {
   border-top: 1px solid var(--linea);
 }
 
+/* «Eliminar a X de la familia» lleva el nombre: si no cabe en una línea
+   (celular, nombre largo) se parte en dos en vez de salirse del panel. */
+.panel-pie .boton {
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+}
+
 /* ---------- Deseos ---------- */
 
 .deseos {
